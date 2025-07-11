@@ -17,6 +17,14 @@ const clearAllSessionData = (): void => {
   console.log('🧹 [LOGIN] Nettoyage complet des données de session');
   
   try {
+    // Vérifier si l'utilisateur a déjà un token valide
+    const existingToken = localStorage.getItem('access_token');
+    if (existingToken) {
+      console.log('🔑 [LOGIN] Token existant trouvé, vérification de validité...');
+      // Ne pas nettoyer si l'utilisateur a déjà un token valide
+      return;
+    }
+    
     // Supprimer tous les cookies
     document.cookie.split(";").forEach(function(c) { 
       document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
