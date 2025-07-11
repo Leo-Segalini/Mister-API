@@ -72,8 +72,14 @@ import { SupabaseAuthMiddleware } from './middleware/supabase-auth.middleware';
         ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
         extra: {
           max: 20,
-          connectionTimeoutMillis: 5000,
+          connectionTimeoutMillis: 30000, // 30 secondes
+          query_timeout: 30000,
+          statement_timeout: 30000,
+          idle_timeout: 30000,
         },
+        retryAttempts: 10,
+        retryDelay: 3000, // 3 secondes entre les tentatives
+        keepConnectionAlive: true,
       }),
       inject: [ConfigService],
     }),
