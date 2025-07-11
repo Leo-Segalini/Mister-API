@@ -25,11 +25,11 @@ export const siteConfig = {
     free: {
       name: 'FREE',
       price: '0€',
-      callsPerDay: 1000,
-      callsPerMinute: 60,
+      callsPerDay: 500,
+      callsPerMinute: 5,
       features: [
-        '1000 appels par jour',
-        '60 appels par minute',
+        '500 appels par jour',
+        '5 appels par minute',
         'Accès à toutes les APIs',
         'Documentation complète',
         'Support communautaire',
@@ -38,12 +38,12 @@ export const siteConfig = {
     },
     premium: {
       name: 'PREMIUM',
-      price: '9.99€/mois',
-      callsPerDay: 10000,
-      callsPerMinute: 300,
+      price: '5€/mois',
+      callsPerDay: 15000,
+      callsPerMinute: 1000,
       features: [
-        '10000 appels par jour',
-        '300 appels par minute',
+        '15000 appels par jour',
+        '1000 appels par minute',
         'Accès à toutes les APIs',
         'Documentation complète',
         'Support prioritaire',

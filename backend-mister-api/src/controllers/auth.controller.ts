@@ -24,6 +24,7 @@ import { AuthenticatedRequest } from '../interfaces/request.interface';
 import { SupabaseService } from '../services/supabase.service';
 import { BrevoConfigService } from '../services/brevo-config.service';
 import { AuthGuard } from '../guards/auth.guard';
+import { SupabaseAuthGuard } from '../guards/supabase-auth.guard';
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { LoginDto, RegisterDto, UpdateLegalAcceptanceDto } from '../dto/auth.dto';
 
@@ -267,7 +268,7 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(AuthGuard)
+  @UseGuards(SupabaseAuthGuard)
   @ApiOperation({
     summary: 'Récupérer le profil utilisateur',
     description: 'Récupère les informations du profil de l\'utilisateur connecté'
@@ -294,12 +295,12 @@ export class AuthController {
       if (!req.user?.id) {
         throw new UnauthorizedException('Utilisateur non authentifié');
       }
-      const profile = await this.supabaseService.getUserProfile(req.user.id);
       
+      // req.user contient déjà toutes les informations du profil grâce au SupabaseAuthGuard
       return {
         success: true,
         message: 'Profil récupéré avec succès',
-        data: profile
+        data: req.user
       };
     } catch (error) {
       throw new UnauthorizedException('Erreur lors de la récupération du profil');
@@ -307,7 +308,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @UseGuards(AuthGuard)
+  @UseGuards(SupabaseAuthGuard)
   @ApiOperation({
     summary: 'Récupérer les informations de l\'utilisateur connecté',
     description: 'Récupère les informations de base de l\'utilisateur connecté'
@@ -334,13 +335,7 @@ export class AuthController {
       return {
         success: true,
         message: 'Informations utilisateur récupérées avec succès',
-        data: {
-          id: req.user?.id,
-          email: req.user?.email,
-          role: req.user?.role,
-          created_at: req.user?.created_at,
-          updated_at: req.user?.updated_at
-        }
+        data: req.user
       };
     } catch (error) {
       throw new UnauthorizedException('Erreur lors de la récupération des informations utilisateur');

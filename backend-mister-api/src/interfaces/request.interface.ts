@@ -10,6 +10,16 @@ export interface AuthenticatedRequest extends Request {
     access_token?: string;
     created_at?: Date;
     updated_at?: Date;
+    // Champs du profil utilisateur
+    nom?: string;
+    prenom?: string;
+    telephone?: string;
+    adresse_postale?: string;
+    code_postal?: string;
+    ville?: string;
+    pays?: string;
+    date_naissance?: string;
+    stripe_customer_id?: string;
   };
   headers: Request['headers'] & {
     authorization?: string;

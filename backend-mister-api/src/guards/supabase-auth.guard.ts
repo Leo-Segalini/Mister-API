@@ -15,21 +15,35 @@ export class SupabaseAuthGuard implements CanActivate {
     }
 
     try {
-      const user = await this.supabaseService.verifyToken(token);
+      // Vérifier le token avec Supabase Auth
+      const authUser = await this.supabaseService.verifyToken(token);
       
-      if (!user) {
+      if (!authUser) {
         throw new UnauthorizedException('Token invalide ou expiré');
       }
 
-      // Ajouter l'utilisateur à la requête pour utilisation ultérieure
+      // Récupérer les informations complètes depuis public.users
+      const userProfile = await this.supabaseService.getUserProfile(authUser.id);
+      
+      // Ajouter l'utilisateur à la requête avec toutes les informations
       request.user = {
-        id: user.id,
-        email: user.email || '',
-        role: user.role || 'user', // Rôle par défaut, sera vérifié par le RolesGuard
-        created_at: user.created_at ? new Date(user.created_at) : undefined,
-        updated_at: user.updated_at ? new Date(user.updated_at) : undefined,
-        is_premium: false,
-        premium_expires_at: new Date(),
+        id: authUser.id,
+        email: authUser.email || '',
+        role: userProfile?.role || 'user',
+        created_at: userProfile?.created_at ? new Date(userProfile.created_at) : undefined,
+        updated_at: userProfile?.updated_at ? new Date(userProfile.updated_at) : undefined,
+        is_premium: userProfile?.is_premium || false,
+        premium_expires_at: userProfile?.premium_expires_at ? new Date(userProfile.premium_expires_at) : new Date(),
+        // Ajouter d'autres champs du profil si nécessaire
+        nom: userProfile?.nom,
+        prenom: userProfile?.prenom,
+        telephone: userProfile?.telephone,
+        adresse_postale: userProfile?.adresse_postale,
+        code_postal: userProfile?.code_postal,
+        ville: userProfile?.ville,
+        pays: userProfile?.pays,
+        date_naissance: userProfile?.date_naissance,
+        stripe_customer_id: userProfile?.stripe_customer_id,
       };
       
       return true;
