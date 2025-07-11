@@ -10,7 +10,6 @@ import {
   HttpCode,
   HttpStatus,
   UnauthorizedException,
-  RawBodyRequest,
   Headers,
   Patch,
   Delete,
@@ -26,7 +25,7 @@ import {
   ApiBody,
   ApiHeader,
 } from '@nestjs/swagger';
-import { AuthenticatedRequest } from '../interfaces/request.interface';
+import { AuthenticatedRequest, RawBodyRequest } from '../interfaces/request.interface';
 import { StripeService, CreateCheckoutSessionDto, CreateSubscriptionDto } from '../services/stripe.service';
 import { SupabaseAuthGuard } from '../guards/supabase-auth.guard';
 import { ApiResponse } from '../interfaces/api-response.interface';

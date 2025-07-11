@@ -12,4 +12,9 @@ export interface AuthenticatedRequest extends Request {
   headers: Request['headers'] & {
     authorization?: string;
   };
+}
+
+export interface RawBodyRequest<T> extends Request {
+  rawBody: string;
+  body: T;
 } 

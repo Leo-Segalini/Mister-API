@@ -5,6 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -12,6 +13,19 @@ async function bootstrap() {
 
   // Configuration globale
   app.setGlobalPrefix(configService.get('API_PREFIX', 'api/v1'));
+
+  // Middleware pour capturer le body brut des webhooks Stripe
+  app.use('/api/v1/payment/webhook', (req: Request, res: Response, next: NextFunction) => {
+    let data = '';
+    req.setEncoding('utf8');
+    req.on('data', (chunk) => {
+      data += chunk;
+    });
+    req.on('end', () => {
+      (req as any).rawBody = data;
+      next();
+    });
+  });
 
   // Validation globale
   app.useGlobalPipes(new ValidationPipe({
@@ -71,7 +85,7 @@ async function bootstrap() {
   if (process.env.NODE_ENV === 'development') {
     const config = new DocumentBuilder()
       .setTitle('Punchiline API')
-      .setDescription('Documentation de l’API Punchiline')
+      .setDescription('Documentation de l\'API Punchiline')
       .setVersion('1.0')
       .addBearerAuth()
       .build();
