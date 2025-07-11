@@ -103,12 +103,32 @@ function PaymentContent() {
       // Test direct de l'endpoint sans passer par l'API service
       addDebugLog('🔧 [PAYMENT] Test direct de l\'endpoint...');
       
+      // Récupérer le token depuis les cookies
+      const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+        const [key, value] = cookie.trim().split('=');
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
+      
+      addDebugLog(`🍪 [PAYMENT] Cookies parsés: ${JSON.stringify(cookies, null, 2)}`);
+      
+      const accessToken = cookies['access_token'] || cookies['sb-access-token'];
+      addDebugLog(`🔑 [PAYMENT] Token trouvé: ${accessToken ? 'Oui' : 'Non'}`);
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Ajouter le token dans le header Authorization si disponible
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+        addDebugLog('🔑 [PAYMENT] Token ajouté dans Authorization header');
+      }
+      
       const response = await fetch(url, {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers,
         body: JSON.stringify({
           priceId: premiumPriceId,
           successUrl: `${window.location.origin}/dashboard?payment=success`,

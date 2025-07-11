@@ -128,7 +128,9 @@ export default function DashboardInfo({ user, isAdmin }: DashboardInfoProps) {
 
   // Fonction pour gérer le succès de création d'une clé API
   const handleApiKeyCreated = (newKey: ApiKey) => {
-    setApiKeys(prevKeys => [newKey, ...(Array.isArray(prevKeys) ? prevKeys : [])]);
+    console.log('📊 [DASHBOARD] Nouvelle clé API créée, rechargement des données...');
+    // Recharger toutes les données du dashboard
+    loadDashboardData();
   };
 
   const deleteApiKey = async (keyId: string) => {
