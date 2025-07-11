@@ -181,7 +181,16 @@ export interface AuthResponse {
   message: string;
   data: {
     user: User;
-    access_token: string;
+    session: {
+      access_token: string;
+      refresh_token?: string;
+      expires_in: number; // Maintenant 14400 secondes (4 heures) au lieu de 3600 (1 heure)
+    };
+    legalStatus?: {
+      conditionsAccepted: boolean;
+      politiqueAccepted: boolean;
+      bothAccepted: boolean;
+    };
   };
 }
 

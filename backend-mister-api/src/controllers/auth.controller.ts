@@ -75,20 +75,24 @@ export class AuthController {
     try {
       const { user, session } = await this.supabaseService.register(registerDto);
       
-      // Définir les cookies sécurisés
+      // Définir les cookies sécurisés avec une durée de 4 heures
       if (session) {
+        // Durée personnalisée de 4 heures (14400 secondes)
+        const customExpiresIn = 4 * 60 * 60; // 4 heures en secondes
+        
         const cookieOptions = {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
-          maxAge: session.expires_in * 1000,
+          maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
         };
 
         res.cookie('access_token', session.access_token, cookieOptions);
         res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
         
-        this.logger.log(`🍪 Cookies définis pour ${user?.email}`);
+        this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
+        this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
       }
 
       return {
@@ -173,13 +177,16 @@ export class AuthController {
       
       const { user, session, legalStatus } = await this.supabaseService.login(loginDto);
       
-      // Définir les cookies sécurisés
+      // Définir les cookies sécurisés avec une durée de 4 heures
       if (session) {
+        // Durée personnalisée de 4 heures (14400 secondes)
+        const customExpiresIn = 4 * 60 * 60; // 4 heures en secondes
+        
         const cookieOptions = {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
-          maxAge: session.expires_in * 1000,
+          maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
           // Pas de domaine spécifique pour permettre le cross-origin
         };
@@ -187,12 +194,14 @@ export class AuthController {
         res.cookie('access_token', session.access_token, cookieOptions);
         res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
         
-        this.logger.log(`🍪 Cookies définis pour ${user?.email}`);
+        this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
+        this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
         this.logger.log(`🍪 Cookie options:`, {
           httpOnly: cookieOptions.httpOnly,
           secure: cookieOptions.secure,
           sameSite: cookieOptions.sameSite,
           path: cookieOptions.path,
+          maxAge: cookieOptions.maxAge,
         });
       }
 

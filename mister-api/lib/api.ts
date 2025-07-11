@@ -259,8 +259,8 @@ class ApiService {
       this.setSessionCookies(response as any);
       
       // Stocker le token dans localStorage pour l'accès cross-origin
-      if (typeof window !== 'undefined' && response.data?.access_token) {
-        localStorage.setItem('access_token', response.data.access_token);
+      if (typeof window !== 'undefined' && response.data?.session?.access_token) {
+        localStorage.setItem('access_token', response.data.session.access_token);
         console.log('🔐 Token stocké dans localStorage');
       }
       
