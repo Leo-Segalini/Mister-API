@@ -90,6 +90,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔍 Validating session...');
       
+      // Vérifier d'abord s'il y a un token dans le localStorage
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+          console.log('🔑 No token found in localStorage');
+          return false;
+        }
+        console.log('🔑 Token found in localStorage, validating with server...');
+      }
+      
       // Essayer de récupérer le profil utilisateur
       const userData = await apiService.getProfile();
       console.log('✅ Session valid, user data:', userData);
@@ -100,7 +110,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Si c'est une erreur 401 (non autorisé), la session est invalide
       if (error.message && error.message.includes('401')) {
-        console.log('🔒 Session expired (401)');
+        console.log('🔒 Session expired (401) - clearing localStorage');
+        // Nettoyer le localStorage en cas de session expirée
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('access_token');
+        }
         return false;
       }
       
@@ -128,6 +142,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('🔐 Initializing authentication...');
         
+        // Vérifier d'abord s'il y a un token dans le localStorage
+        let hasToken = false;
+        if (typeof window !== 'undefined') {
+          const token = localStorage.getItem('access_token');
+          hasToken = !!token;
+          console.log(`🔑 Token in localStorage: ${hasToken ? 'Found' : 'Not found'}`);
+        }
+        
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
         if (typeof window !== 'undefined') {
           const currentPath = window.location.pathname;
@@ -144,23 +166,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
-        // Toujours vérifier l'authentification pour les pages non-publiques
-        console.log('🔍 Checking authentication status...');
-        const isValid = await validateSession();
-        
-        if (!isValid && isMounted) {
-          console.log('📭 No valid session found');
-          // Rediriger vers la page de connexion si on est sur une page protégée
+        // Si on a un token, essayer de valider la session
+        if (hasToken) {
+          console.log('🔍 Token found, validating session...');
+          const isValid = await validateSession();
+          
+          if (isValid && isMounted) {
+            console.log('✅ Valid session found, user authenticated');
+          } else if (!isValid && isMounted) {
+            console.log('📭 Invalid session, redirecting to login');
+            // Rediriger vers la page de connexion si on est sur une page protégée
+            if (typeof window !== 'undefined') {
+              const currentPath = window.location.pathname;
+              const protectedPaths = ['/dashboard', '/payment'];
+              if (protectedPaths.some(path => currentPath.startsWith(path))) {
+                console.log('🔄 Redirecting to login page');
+                router.push('/login');
+              }
+            }
+          }
+        } else {
+          console.log('📭 No token found, redirecting to login');
+          // Pas de token, rediriger vers la page de connexion si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment']; // /stats retiré temporairement
+            const protectedPaths = ['/dashboard', '/payment'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
               console.log('🔄 Redirecting to login page');
               router.push('/login');
             }
           }
-        } else if (isValid) {
-          console.log('✅ Valid session found, user authenticated');
         }
       } catch (error) {
         console.error('💥 Auth initialization error:', error);
@@ -168,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // En cas d'erreur, nettoyer et rediriger seulement si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment']; // /stats retiré temporairement
+            const protectedPaths = ['/dashboard', '/payment'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
               await signout();
             }
@@ -229,8 +264,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
-        setUser(response.data.user);
-        console.log('👤 User state updated:', response.data.user);
+        // Récupérer le profil complet de l'utilisateur après connexion
+        console.log('👤 Récupération du profil complet...');
+        try {
+          const userProfile = await apiService.getProfile();
+          console.log('✅ Profil complet récupéré:', userProfile);
+          setUser(userProfile);
+        } catch (profileError) {
+          console.warn('⚠️ Erreur lors de la récupération du profil, utilisation des données de base:', profileError);
+          setUser(response.data.user);
+        }
+        
         // Rediriger vers le dashboard après connexion réussie
         router.push('/dashboard');
       } else {
