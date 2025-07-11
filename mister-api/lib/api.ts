@@ -189,7 +189,7 @@ class ApiService {
       
       // Gestion spécifique des erreurs réseau
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Serveur indisponible - Vérifiez que le backend est démarré sur http://localhost:3001');
+        throw new Error('Serveur indisponible - Veuillez réessayer plus tard');
       }
       
       if (error.name === 'AbortError') {

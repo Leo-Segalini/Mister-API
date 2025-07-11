@@ -27,8 +27,35 @@ async function bootstrap() {
   app.use(cookieParser(configService.get('COOKIE_SECRET')));
 
   // CORS
+  const corsOrigins = [
+    'http://localhost:3000',
+    'https://mister-api.vercel.app',
+    'https://mister-fxsm9xtz9-leo-segalini-web-developper.vercel.app',
+    'https://*.vercel.app', // Autorise tous les sous-domaines Vercel
+  ];
+  
   app.enableCors({
-    origin: configService.get('CORS_ORIGIN', 'http://localhost:3000'),
+    origin: (origin, callback) => {
+      // Autoriser les requêtes sans origin (comme les appels API directs)
+      if (!origin) return callback(null, true);
+      
+      // Vérifier si l'origine est dans la liste autorisée
+      const isAllowed = corsOrigins.some(allowedOrigin => {
+        if (allowedOrigin.includes('*')) {
+          // Gestion des wildcards
+          const pattern = allowedOrigin.replace('*', '.*');
+          return new RegExp(pattern).test(origin);
+        }
+        return allowedOrigin === origin;
+      });
+      
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.log(`🚫 CORS bloqué pour l'origine: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key'],
