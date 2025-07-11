@@ -8,7 +8,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToastContext } from '@/components/ToastProvider';
 import { apiService } from '@/lib/api';
-import ServerStatus from '@/components/ServerStatus';
+
 
 // Fonction utilitaire pour nettoyer les cookies et le stockage
 const clearAllSessionData = (): void => {
@@ -128,11 +128,11 @@ export default function Login() {
         // Gestion des erreurs réseau
         if (error.message.includes('Serveur indisponible') || 
             error.message.includes('Serveur backend indisponible')) {
-          errorMessage = 'Le serveur backend n\'est pas démarré. Veuillez démarrer le serveur sur http://localhost:3001 et réessayer.';
+          errorMessage = 'Le serveur backend n\'est pas accessible. Veuillez réessayer plus tard.';
           errorTitle = 'Serveur indisponible';
         } else if (error.message.includes('Impossible de se connecter au serveur') ||
                    error.message.includes('Erreur de connexion au serveur')) {
-          errorMessage = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet et que le backend est démarré.';
+          errorMessage = 'Impossible de se connecter au serveur. Vérifiez votre connexion internet et réessayez.';
           errorTitle = 'Erreur de connexion';
         } else if (error.message.includes('Invalid login credentials') || 
             error.message.includes('Invalid email or password') ||
@@ -186,8 +186,7 @@ export default function Login() {
 
   return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        {/* Composant de statut du serveur */}
-        <ServerStatus />
+
         
         <div className="max-w-md w-full space-y-8">
           <motion.div
