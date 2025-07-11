@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { XCircle, AlertTriangle, ArrowLeft, Home, CreditCard, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToastContext } from '@/components/ToastProvider';
 
-export default function PaymentCancelledPage() {
+function PaymentCancelledContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -252,5 +252,21 @@ export default function PaymentCancelledPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentCancelledPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-yellow-400 mb-2">Chargement...</h2>
+          <p className="text-gray-400">Veuillez patienter</p>
+        </div>
+      </div>
+    }>
+      <PaymentCancelledContent />
+    </Suspense>
   );
 } 
