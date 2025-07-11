@@ -3,7 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class LoginDto {
   @ApiProperty({
-    description: 'Adresse email de l\'utilisateur',
+    description: 'Email de l\'utilisateur',
     example: 'user@example.com'
   })
   @IsEmail()
@@ -11,9 +11,10 @@ export class LoginDto {
 
   @ApiProperty({
     description: 'Mot de passe de l\'utilisateur',
-    example: 'Password123!'
+    example: 'password123'
   })
   @IsString()
+  @MinLength(6)
   password: string;
 }
 
@@ -193,15 +194,6 @@ export class UpdateProfileDto {
   @IsString()
   @MaxLength(500)
   bio?: string;
-}
-
-export class RefreshTokenDto {
-  @ApiProperty({
-    description: 'Refresh token pour renouveler l\'access token',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-  })
-  @IsString()
-  refresh_token: string;
 }
 
 export class ChangePasswordDto {

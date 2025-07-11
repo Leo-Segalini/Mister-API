@@ -11,7 +11,6 @@ interface AuthContextType {
   signin: (email: string, password: string) => Promise<void>;
   signup: (userData: RegisterData) => Promise<void>;
   signout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
 }
@@ -27,13 +26,10 @@ const clearAllSessionData = () => {
   // Liste de tous les cookies d'authentification à supprimer
   const cookiesToClear = [
     'access_token',
-    'refresh_token', 
     'user_id',
     'user_role',
     'supabase.auth.token',
-    'supabase.auth.refreshToken',
-    'sb-iqblthgenholebudyvcx-auth-token',
-    'sb-iqblthgenholebudyvcx-refresh-token'
+    'sb-iqblthgenholebudyvcx-auth-token'
   ];
 
   // Supprimer chaque cookie avec différentes options pour s'assurer qu'ils sont bien supprimés
@@ -49,9 +45,7 @@ const clearAllSessionData = () => {
   // Nettoyer aussi le localStorage et sessionStorage
   if (typeof localStorage !== 'undefined') {
     localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('supabase.auth.refreshToken');
     localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
-    localStorage.removeItem('sb-iqblthgenholebudyvcx-refresh-token');
     console.log('🧹 LocalStorage cleared');
   }
   
@@ -126,23 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Fonction de rafraîchissement de token
-  const attemptTokenRefresh = useCallback(async (): Promise<boolean> => {
-    try {
-      console.log('🔄 Attempting token refresh...');
-      await apiService.refreshToken();
-      
-      // Si le refresh réussit, récupérer le profil
-      const userData = await apiService.getProfile();
-      console.log('✅ Token refreshed, user data:', userData);
-      setUser(userData);
-      return true;
-    } catch (refreshError) {
-      console.error('❌ Token refresh failed:', refreshError);
-      return false;
-    }
-  }, []);
-
   // Vérification automatique de l'authentification au démarrage
   useEffect(() => {
     let isMounted = true;
@@ -199,9 +176,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } finally {
         if (isMounted) {
-        setIsLoading(false);
+          setIsLoading(false);
           setIsInitialized(true);
-        console.log('🏁 Auth initialization complete');
+          console.log('🏁 Auth initialization complete');
         }
       }
     };
@@ -226,15 +203,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Vérifier périodiquement si la session est toujours valide
         await apiService.getProfile();
       } catch (error) {
-        console.log('⚠️ Session expired, attempting refresh...');
+        console.log('⚠️ Session expired, signing out...');
         
         if (isMounted) {
-          const refreshSuccess = await attemptTokenRefresh();
-          
-          if (!refreshSuccess) {
-            console.log('❌ Session refresh failed, signing out...');
-            await signout();
-          }
+          console.log('❌ Session invalid, signing out...');
+          await signout();
         }
       }
     };
@@ -246,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [user, router, isInitialized, attemptTokenRefresh, signout]);
+  }, [user, router, isInitialized, signout]);
 
   const signin = async (email: string, password: string) => {
     try {
@@ -301,22 +274,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const refreshToken = async () => {
-    try {
-      console.log('🔄 Refreshing token...');
-      const response: AuthResponse = await apiService.refreshToken();
-      
-      if (response.success && response.data.user) {
-        setUser(response.data.user);
-        console.log('✅ Token refreshed, user updated');
-      }
-    } catch (error) {
-      console.error('❌ Token refresh failed:', error);
-      // Si le refresh échoue, déconnecter l'utilisateur
-      await signout();
-    }
-  };
-
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin';
 
@@ -326,7 +283,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signin,
     signup,
     signout,
-    refreshToken,
     isAuthenticated,
     isAdmin
   };

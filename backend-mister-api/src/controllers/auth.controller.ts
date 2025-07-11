@@ -25,7 +25,7 @@ import { SupabaseService } from '../services/supabase.service';
 import { BrevoConfigService } from '../services/brevo-config.service';
 import { AuthGuard } from '../guards/auth.guard';
 import { ApiResponse } from '../interfaces/api-response.interface';
-import { LoginDto, RegisterDto, RefreshTokenDto, UpdateLegalAcceptanceDto } from '../dto/auth.dto';
+import { LoginDto, RegisterDto, UpdateLegalAcceptanceDto } from '../dto/auth.dto';
 
 @ApiTags('Authentification')
 @Controller('auth')
@@ -87,11 +87,6 @@ export class AuthController {
 
         res.cookie('access_token', session.access_token, cookieOptions);
         res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
-        
-        res.cookie('refresh_token', session.refresh_token, {
-          ...cookieOptions,
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
-        });
         
         this.logger.log(`🍪 Cookies définis pour ${user?.email}`);
       }
@@ -192,11 +187,6 @@ export class AuthController {
         res.cookie('access_token', session.access_token, cookieOptions);
         res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
         
-        res.cookie('refresh_token', session.refresh_token, {
-          ...cookieOptions,
-          maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
-        });
-        
         this.logger.log(`🍪 Cookies définis pour ${user?.email}`);
         this.logger.log(`🍪 Cookie options:`, {
           httpOnly: cookieOptions.httpOnly,
@@ -259,71 +249,11 @@ export class AuthController {
       
       // Supprimer les cookies
       res.clearCookie('access_token');
-      res.clearCookie('refresh_token');
+      res.clearCookie('sb-access-token');
     } catch (error) {
       // Même en cas d'erreur, on supprime les cookies
       res.clearCookie('access_token');
-      res.clearCookie('refresh_token');
-    }
-  }
-
-  @Post('refresh')
-  @ApiOperation({
-    summary: 'Rafraîchir le token d\'accès',
-    description: 'Utilise le refresh token pour obtenir un nouveau access token'
-  })
-  @SwaggerApiResponse({
-    status: 200,
-    description: 'Token rafraîchi avec succès',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'Token rafraîchi avec succès' },
-        data: {
-          type: 'object',
-          properties: {
-            session: { type: 'object' }
-          }
-        }
-      }
-    }
-  })
-  @SwaggerApiResponse({
-    status: 401,
-    description: 'Refresh token invalide'
-  })
-  async refresh(
-    @Body() refreshTokenDto: RefreshTokenDto,
-    @Res({ passthrough: true }) res: Response
-  ): Promise<ApiResponse<any>> {
-    try {
-      const session = await this.supabaseService.refreshToken(refreshTokenDto.refresh_token);
-      
-      // Mettre à jour les cookies
-      const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
-        maxAge: session.expires_in * 1000,
-        path: '/',
-      };
-
-      res.cookie('access_token', session.access_token, cookieOptions);
-      res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
-      
-      res.cookie('refresh_token', session.refresh_token, {
-        ...cookieOptions,
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
-      });
-
-      return {
-        success: true,
-        message: 'Token rafraîchi avec succès',
-        data: { session }
-      };
-    } catch (error) {
-      throw new UnauthorizedException('Refresh token invalide');
+      res.clearCookie('sb-access-token');
     }
   }
 

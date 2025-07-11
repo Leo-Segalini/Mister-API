@@ -38,34 +38,14 @@ const COOKIE_CONFIG = {
 
 class ApiService {
   private baseUrl: string;
-  private isRefreshing = false;
-  private failedQueue: Array<{
-    resolve: (value: any) => void;
-    reject: (error: any) => void;
-  }> = [];
 
   constructor() {
-    this.baseUrl = siteConfig.api.baseUrl;
-    console.log('🔧 API Service initialized with base URL:', this.baseUrl);
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mister-api.onrender.com';
+    console.log('🚀 ApiService initialized with baseUrl:', this.baseUrl);
   }
 
   /**
-   * Traiter la queue des requêtes en attente après un refresh token
-   */
-  private processQueue(error: any, token: string | null = null) {
-    this.failedQueue.forEach(({ resolve, reject }) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(token);
-      }
-    });
-    
-    this.failedQueue = [];
-  }
-
-  /**
-   * Méthode générique pour les requêtes API avec gestion des cookies et refresh token automatique
+   * Méthode générique pour les requêtes API avec gestion des cookies
    */
   private async request<T>(
     endpoint: string,
@@ -117,58 +97,22 @@ class ApiService {
         
         // Gestion spécifique des erreurs
         if (response.status === 401) {
-          // Ne pas rediriger automatiquement si c'est une tentative de connexion ou de refresh
+          // Ne pas rediriger automatiquement si c'est une tentative de connexion
           const isLoginAttempt = endpoint.includes('/auth/login');
-          const isRefreshAttempt = endpoint.includes('/auth/refresh');
           
-          if (!isLoginAttempt && !isRefreshAttempt && retryCount === 0) {
-            // Essayer de rafraîchir le token automatiquement
-            try {
-              console.log('🔄 Token expired, attempting automatic refresh...');
-              
-              if (this.isRefreshing) {
-                // Si un refresh est déjà en cours, attendre
-                return new Promise((resolve, reject) => {
-                  this.failedQueue.push({ resolve, reject });
-                }).then(() => {
-                  // Retenter la requête originale
-                  return this.request<T>(endpoint, options, retryCount + 1);
-                });
-              }
-              
-              this.isRefreshing = true;
-              
-              // Tenter de rafraîchir le token
-              await this.refreshToken();
-              
-              this.isRefreshing = false;
-              this.processQueue(null, 'token_refreshed');
-              
-              // Retenter la requête originale avec le nouveau token
-              console.log('✅ Token refreshed, retrying original request...');
-              return this.request<T>(endpoint, options, retryCount + 1);
-              
-            } catch (refreshError) {
-              console.error('❌ Token refresh failed:', refreshError);
-              this.isRefreshing = false;
-              this.processQueue(refreshError, null);
-              
-              // Nettoyer les cookies côté client
-              this.clearSessionCookies();
-              
-              // Rediriger vers la page de connexion seulement si ce n'est pas une tentative de connexion
-              if (typeof window !== 'undefined') {
-                window.location.href = '/login';
-              }
-              
-              throw new Error('Session expirée - Veuillez vous reconnecter');
+          if (!isLoginAttempt) {
+            // Nettoyer les cookies côté client
+            this.clearSessionCookies();
+            
+            // Rediriger vers la page de connexion seulement si ce n'est pas une tentative de connexion
+            if (typeof window !== 'undefined') {
+              window.location.href = '/login';
             }
-          } else if (isLoginAttempt) {
+            
+            throw new Error('Session expirée - Veuillez vous reconnecter');
+          } else {
             // Pour les tentatives de connexion, laisser l'erreur être gérée par le composant
             throw new Error(data.message || 'Email ou mot de passe incorrect');
-          } else {
-            // Pour les tentatives de refresh, propager l'erreur
-            throw new Error(data.message || 'Échec du rafraîchissement du token');
           }
         } else if (response.status === 403) {
           throw new Error('Accès refusé - Permissions insuffisantes');
@@ -184,25 +128,9 @@ class ApiService {
       }
 
       return data;
-    } catch (error: any) {
+    } catch (error) {
       console.error(`💥 Request failed for ${url}:`, error);
-      
-      // Gestion spécifique des erreurs réseau
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        throw new Error('Serveur indisponible - Veuillez réessayer plus tard');
-      }
-      
-      if (error.name === 'AbortError') {
-        throw new Error('Requête annulée - Vérifiez votre connexion internet');
-      }
-      
-      // Si c'est déjà une erreur formatée, la propager
-      if (error.message && !error.message.includes('❌ API Error')) {
       throw error;
-      }
-      
-      // Sinon, créer une erreur générique
-      throw new Error('Erreur de connexion au serveur - Veuillez réessayer');
     }
   }
 
@@ -228,13 +156,10 @@ class ApiService {
     // Liste de tous les cookies d'authentification à supprimer
     const cookiesToClear = [
       'access_token',
-      'refresh_token', 
       'user_id',
       'user_role',
       'supabase.auth.token',
-      'supabase.auth.refreshToken',
-      'sb-iqblthgenholebudyvcx-auth-token',
-      'sb-iqblthgenholebudyvcx-refresh-token'
+      'sb-iqblthgenholebudyvcx-auth-token'
     ];
 
     // Supprimer chaque cookie avec différentes options pour s'assurer qu'ils sont bien supprimés
@@ -254,9 +179,7 @@ class ApiService {
     // Nettoyer aussi le localStorage et sessionStorage
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('supabase.auth.refreshToken');
       localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
-      localStorage.removeItem('sb-iqblthgenholebudyvcx-refresh-token');
       console.log('🧹 LocalStorage cleared');
     }
     
@@ -334,20 +257,6 @@ class ApiService {
         window.location.href = '/login';
       }
     }
-  }
-
-  /**
-   * Rafraîchissement du token
-   */
-  async refreshToken(): Promise<AuthResponse> {
-    console.log('🔄 Refreshing token');
-    
-    const response = await this.request<AuthResponse>('/api/v1/auth/refresh', {
-      method: 'POST',
-    });
-    
-    this.setSessionCookies(response as any);
-    return response;
   }
 
   /**

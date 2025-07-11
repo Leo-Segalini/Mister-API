@@ -409,26 +409,6 @@ export class SupabaseService {
   }
 
   /**
-   * Rafraîchir le token d'accès
-   */
-  async refreshToken(refreshToken: string): Promise<any> {
-    try {
-      const { data, error } = await this.supabase.auth.refreshSession({
-        refresh_token: refreshToken
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      return data.session;
-    } catch (error) {
-      this.logger.error('Erreur lors du rafraîchissement du token:', error);
-      throw error;
-    }
-  }
-
-  /**
    * Envoyer un email de réinitialisation de mot de passe
    */
   async resetPassword(email: string): Promise<void> {

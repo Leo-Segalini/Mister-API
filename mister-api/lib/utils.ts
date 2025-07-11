@@ -140,7 +140,6 @@ export const clearAllSessionData = (): void => {
     // Supprimer spécifiquement les cookies d'authentification
     const authCookies = [
       'sb-access-token',
-      'sb-refresh-token',
       'supabase.auth.token',
       'auth-token',
       'session-token'
