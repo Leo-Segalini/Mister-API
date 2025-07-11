@@ -15,6 +15,7 @@ import {
   Delete,
   Request,
 } from '@nestjs/common';
+import { Request as ExpressRequest } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -65,7 +66,7 @@ export class PaymentController {
   @SwaggerApiResponse({ status: 201, description: 'Session de paiement créée' })
   async createCheckoutSession(
     @Body() data: { priceId?: string; successUrl: string; cancelUrl: string },
-    @Req() req: AuthenticatedRequest,
+    @Req() req: AuthenticatedRequest & ExpressRequest,
   ): Promise<ApiResponse<any>> {
     console.log('💳 PaymentController.createCheckoutSession called');
     console.log('📦 Request data:', data);
