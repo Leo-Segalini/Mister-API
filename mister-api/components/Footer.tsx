@@ -117,6 +117,18 @@ const Footer = () => {
                   Conditions Générales
                 </Link>
               </li>
+              <li>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('cookie-consent');
+                    localStorage.removeItem('cookie-consent-date');
+                    window.location.reload();
+                  }}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Gérer les cookies
+                </button>
+              </li>
             </ul>
           </div>
         </div>

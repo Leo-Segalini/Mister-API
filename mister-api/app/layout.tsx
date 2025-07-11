@@ -3,8 +3,10 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import CookieBannerWrapper from "@/components/CookieBannerWrapper";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ToastProvider } from "@/components/ToastProvider";
+import { CookieProvider } from "@/components/CookieProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -67,13 +69,16 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ToastProvider>
-            <div className="min-h-screen flex flex-col">
-              <Header />
-              <main className="flex-1 pt-16">
-                {children}
-              </main>
-              <Footer />
-            </div>
+            <CookieProvider>
+              <div className="min-h-screen flex flex-col">
+                <Header />
+                <main className="flex-1 pt-16">
+                  {children}
+                </main>
+                <Footer />
+                <CookieBannerWrapper />
+              </div>
+            </CookieProvider>
           </ToastProvider>
         </AuthProvider>
       </body>
