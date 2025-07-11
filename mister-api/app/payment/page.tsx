@@ -100,50 +100,17 @@ function PaymentContent() {
       const url = `${baseUrl}${endpoint}`;
       addDebugLog(`🔧 [PAYMENT] URL construite: ${url}`);
 
-      // Test simple pour vérifier que la requête POST fonctionne
-      addDebugLog('🔧 [PAYMENT] Test simple de la requête POST...');
+      // Test avec l'API service qui utilise maintenant localStorage
+      addDebugLog('🔧 [PAYMENT] Test avec API service (localStorage)...');
       
-      // Test 1: Requête vers un endpoint qui existe (prices)
-      addDebugLog('🔧 [PAYMENT] Test 1: Endpoint /api/v1/payments/prices (GET)');
-      const testResponse1 = await fetch(`${baseUrl}/api/v1/payments/prices`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      // Vérifier si le token est dans localStorage
+      const tokenFromStorage = localStorage.getItem('access_token');
+      addDebugLog(`🔑 [PAYMENT] Token dans localStorage: ${tokenFromStorage ? 'Trouvé' : 'Non trouvé'}`);
       
-      addDebugLog(`📡 [PAYMENT] Test 1 - Status: ${testResponse1.status}`);
-      addDebugLog(`📡 [PAYMENT] Test 1 - URL: ${testResponse1.url}`);
-      
-      // Test 2: Requête POST vers l'endpoint de paiement
-      addDebugLog('🔧 [PAYMENT] Test 2: Endpoint /api/v1/payments/create-checkout-session (POST)');
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          priceId: premiumPriceId,
-          successUrl: `${window.location.origin}/dashboard?payment=success`,
-          cancelUrl: `${window.location.origin}/payment?payment=cancelled`
-        })
-      });
+      // Utiliser l'API service qui gère maintenant le token automatiquement
+      const session = await apiService.createCheckoutSession(premiumPriceId);
 
-      addDebugLog(`📡 [PAYMENT] Response status: ${response.status}`);
-      addDebugLog(`📡 [PAYMENT] Response URL: ${response.url}`);
-      addDebugLog(`📡 [PAYMENT] Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        addDebugLog(`❌ [PAYMENT] Error response: ${errorText}`);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
-      }
-
-      const session = await response.json();
-      addDebugLog('✅ [PAYMENT] Session créée:');
+      addDebugLog('✅ [PAYMENT] Session créée avec succès:');
       addDebugLog(JSON.stringify(session, null, 2));
       
       if (session.url) {

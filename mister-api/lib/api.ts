@@ -63,11 +63,34 @@ class ApiService {
       retryCount
     });
     
+    // Récupérer le token depuis localStorage si disponible
+    let accessToken = null;
+    if (typeof window !== 'undefined') {
+      accessToken = localStorage.getItem('access_token');
+      console.log('🔑 Token depuis localStorage:', accessToken ? 'Trouvé' : 'Non trouvé');
+    }
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    // Ajouter les headers optionnels
+    if (options.headers) {
+      Object.entries(options.headers).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          headers[key] = value;
+        }
+      });
+    }
+    
+    // Ajouter le token dans le header Authorization si disponible
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+      console.log('🔑 Token ajouté dans Authorization header');
+    }
+    
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
       credentials: 'include', // Important pour les cookies
       ...options,
     };
@@ -192,6 +215,7 @@ class ApiService {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
+      localStorage.removeItem('access_token');
       console.log('🧹 LocalStorage cleared');
     }
     
@@ -233,6 +257,13 @@ class ApiService {
       });
       
       this.setSessionCookies(response as any);
+      
+      // Stocker le token dans localStorage pour l'accès cross-origin
+      if (typeof window !== 'undefined' && response.data?.access_token) {
+        localStorage.setItem('access_token', response.data.access_token);
+        console.log('🔐 Token stocké dans localStorage');
+      }
+      
       return response;
     } catch (error: any) {
       // Gestion spécifique de l'erreur email non confirmé
