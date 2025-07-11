@@ -241,9 +241,14 @@ export class StripeService {
    */
   async handleWebhook(event: Stripe.Event): Promise<void> {
     try {
+      this.logger.log(`💳 Webhook reçu: ${event.type}`);
+      
       switch (event.type) {
         case 'checkout.session.completed':
           await this.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+          break;
+        case 'customer.subscription.created':
+          await this.handleSubscriptionCreated(event.data.object as Stripe.Subscription);
           break;
         case 'invoice.payment_succeeded':
           await this.handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
@@ -256,6 +261,9 @@ export class StripeService {
           break;
         case 'customer.subscription.deleted':
           await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+          break;
+        case 'payment_intent.succeeded':
+          await this.handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
           break;
         default:
           this.logger.log(`Webhook non géré: ${event.type}`);
@@ -424,6 +432,107 @@ export class StripeService {
       this.logger.log(`Paiement échoué pour l'utilisateur ${userId}`);
     } catch (error) {
       this.logger.error('Erreur lors du traitement du paiement échoué:', error);
+    }
+  }
+
+  /**
+   * Gère la création d'un abonnement
+   */
+  private async handleSubscriptionCreated(subscription: any): Promise<void> {
+    try {
+      const userId = subscription.metadata?.userId;
+      if (!userId) {
+        this.logger.warn('Subscription sans userId dans les métadonnées');
+        return;
+      }
+
+      // Mettre à jour l'utilisateur
+      await this.userRepository.update(userId, {
+        is_premium: true,
+        stripe_customer_id: subscription.customer as string,
+        premium_expires_at: new Date((subscription as any).current_period_end * 1000),
+      });
+
+      // Créer un enregistrement dans la table payments
+      const payment = this.paymentRepository.create({
+        user_id: userId,
+        stripe_subscription_id: subscription.id,
+        stripe_customer_id: subscription.customer as string,
+        amount: (subscription as any).items?.data[0]?.price?.unit_amount || 0,
+        currency: (subscription as any).items?.data[0]?.price?.currency?.toUpperCase() || 'EUR',
+        status: PaymentStatus.SUCCEEDED,
+        payment_method: 'stripe',
+        description: `Création abonnement Premium - Subscription ${subscription.id}`,
+        metadata: {
+          subscription_id: subscription.id,
+          price_id: (subscription as any).items?.data[0]?.price?.id,
+          status: subscription.status,
+          current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+        },
+      });
+
+      await this.paymentRepository.save(payment);
+
+      this.logger.log(`✅ Abonnement créé pour l'utilisateur ${userId} - Premium activé`);
+    } catch (error) {
+      this.logger.error('Erreur lors du traitement de la création d\'abonnement:', error);
+    }
+  }
+
+  /**
+   * Gère le succès d'un payment intent
+   */
+  private async handlePaymentIntentSucceeded(paymentIntent: any): Promise<void> {
+    try {
+      const userId = paymentIntent.metadata?.userId;
+      if (!userId) {
+        this.logger.warn('PaymentIntent sans userId dans les métadonnées');
+        return;
+      }
+
+      // Vérifier si un paiement existe déjà pour ce payment intent
+      const existingPayment = await this.paymentRepository.findOne({
+        where: { stripe_payment_intent_id: paymentIntent.id }
+      });
+
+      if (existingPayment) {
+        this.logger.log(`Paiement déjà enregistré pour PaymentIntent ${paymentIntent.id}`);
+        return;
+      }
+
+      // Créer un enregistrement dans la table payments
+      const payment = this.paymentRepository.create({
+        user_id: userId,
+        stripe_payment_intent_id: paymentIntent.id,
+        stripe_customer_id: paymentIntent.customer as string,
+        amount: paymentIntent.amount,
+        currency: paymentIntent.currency?.toUpperCase() || 'EUR',
+        status: PaymentStatus.SUCCEEDED,
+        payment_method: 'stripe',
+        description: `Paiement Premium - PaymentIntent ${paymentIntent.id}`,
+        metadata: {
+          payment_intent_id: paymentIntent.id,
+          payment_method: paymentIntent.payment_method,
+          status: paymentIntent.status,
+        },
+      });
+
+      await this.paymentRepository.save(payment);
+
+      // Mettre à jour l'utilisateur si pas déjà premium
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (user && !user.is_premium) {
+        await this.userRepository.update(userId, {
+          is_premium: true,
+          stripe_customer_id: paymentIntent.customer as string,
+          premium_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 jours
+        });
+      }
+
+      this.logger.log(`✅ PaymentIntent réussi pour l'utilisateur ${userId} - Paiement enregistré: ${payment.id}`);
+    } catch (error) {
+      this.logger.error('Erreur lors du traitement du PaymentIntent réussi:', error);
     }
   }
 
