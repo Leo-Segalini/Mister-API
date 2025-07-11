@@ -14,7 +14,13 @@ import {
   Info,
   Settings,
   Play,
-  Pause
+  Pause,
+  BookOpen,
+  PawPrint,
+  Globe,
+  User,
+  Key,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToastContext } from '@/components/ToastProvider';
