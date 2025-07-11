@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Play, 
-  Stop, 
+  Square, 
   CheckCircle, 
   XCircle, 
   Clock, 
@@ -393,7 +393,7 @@ const TestRunner: React.FC<TestRunnerProps> = ({ className = '' }) => {
               onClick={stopTests}
               className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
             >
-              <Stop className="h-4 w-4" />
+                              <Square className="h-4 w-4" />
               <span>Arrêter</span>
             </button>
           )}

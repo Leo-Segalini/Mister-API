@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { apiService } from '@/lib/api';
 import { useToastContext } from '@/components/ToastProvider';
-import AdminGuard from '@/components/AdminGuard';
+import { AdminGuard } from '@/components/AdminGuard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import type { Citation, Animal, Pays, User } from '@/types';
 
