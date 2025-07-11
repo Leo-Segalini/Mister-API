@@ -338,10 +338,15 @@ export class StripeService {
    */
   private async handleInvoicePaymentSucceeded(invoice: any): Promise<void> {
     try {
+      this.logger.log(`📄 Traitement de l'invoice: ${invoice.id}`);
+      this.logger.log(`📄 Invoice subscription: ${invoice.subscription}`);
+      this.logger.log(`📄 Invoice customer: ${invoice.customer}`);
+      this.logger.log(`📄 Invoice amount_paid: ${invoice.amount_paid}`);
+      
       // Vérifier si l'invoice a une subscription
       const subscriptionId = invoice.subscription;
       if (!subscriptionId) {
-        this.logger.warn('Invoice sans subscription');
+        this.logger.warn('❌ Invoice sans subscription - impossible de traiter');
         return;
       }
 
@@ -446,11 +451,24 @@ export class StripeService {
         return;
       }
 
+      // Vérifier et calculer la date d'expiration
+      const currentPeriodEnd = (subscription as any).current_period_end;
+      let premiumExpiresAt: Date;
+      
+      if (currentPeriodEnd && typeof currentPeriodEnd === 'number' && currentPeriodEnd > 0) {
+        premiumExpiresAt = new Date(currentPeriodEnd * 1000);
+        this.logger.log(`📅 Date d'expiration calculée: ${premiumExpiresAt.toISOString()}`);
+      } else {
+        // Date par défaut : 30 jours à partir de maintenant
+        premiumExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        this.logger.log(`📅 Date d'expiration par défaut: ${premiumExpiresAt.toISOString()}`);
+      }
+
       // Mettre à jour l'utilisateur
       await this.userRepository.update(userId, {
         is_premium: true,
         stripe_customer_id: subscription.customer as string,
-        premium_expires_at: new Date((subscription as any).current_period_end * 1000),
+        premium_expires_at: premiumExpiresAt,
       });
 
       // Créer un enregistrement dans la table payments
@@ -485,9 +503,30 @@ export class StripeService {
    */
   private async handlePaymentIntentSucceeded(paymentIntent: any): Promise<void> {
     try {
-      const userId = paymentIntent.metadata?.userId;
+      let userId = paymentIntent.metadata?.userId;
+      
+      // Si pas d'userId dans les métadonnées, essayer de le récupérer depuis la session
       if (!userId) {
-        this.logger.warn('PaymentIntent sans userId dans les métadonnées');
+        this.logger.log('🔍 Recherche de l\'userId depuis la session de paiement...');
+        
+        try {
+          // Récupérer la session de paiement associée
+          const sessions = await this.stripe.checkout.sessions.list({
+            payment_intent: paymentIntent.id,
+            limit: 1,
+          });
+          
+          if (sessions.data.length > 0) {
+            userId = sessions.data[0].metadata?.userId;
+            this.logger.log(`✅ UserId trouvé dans la session: ${userId}`);
+          }
+        } catch (sessionError) {
+          this.logger.warn('⚠️ Impossible de récupérer la session:', sessionError.message);
+        }
+      }
+      
+      if (!userId) {
+        this.logger.warn('❌ PaymentIntent sans userId - impossible de traiter');
         return;
       }
 
