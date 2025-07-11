@@ -264,8 +264,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
-        setUser(response.data.user);
-        console.log('👤 User state updated:', response.data.user);
+        // Récupérer les données complètes du profil depuis public.users
+        console.log('📋 Fetching complete user profile...');
+        try {
+          const profileData = await apiService.getProfile();
+          console.log('✅ Complete profile data:', profileData);
+          setUser(profileData);
+        } catch (profileError) {
+          console.warn('⚠️ Could not fetch complete profile, using auth data:', profileError);
+          // En cas d'erreur, utiliser les données de auth.users
+          setUser(response.data.user);
+        }
+        
+        console.log('👤 User state updated with complete profile');
         // Rediriger vers le dashboard après connexion réussie
         router.push('/dashboard');
       } else {
