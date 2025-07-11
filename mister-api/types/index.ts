@@ -27,10 +27,6 @@ export interface User {
   is_premium: boolean;
   premium_expires_at?: string;
   stripe_customer_id?: string;
-  conditions_generales_acceptees?: boolean;
-  politique_confidentialite_acceptee?: boolean;
-  date_acceptation_conditions?: string;
-  date_acceptation_politique?: string;
   created_at: string;
   updated_at: string;
   role?: 'user' | 'admin'; // Rôle utilisateur

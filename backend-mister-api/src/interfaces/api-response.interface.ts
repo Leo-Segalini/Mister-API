@@ -62,12 +62,11 @@ export interface UserProfile {
   ville: string;
   pays: string;
   telephone?: string;
-  avatar_url?: string;
-  bio?: string;
-  preferences: Record<string, any>;
   is_verified: boolean;
   created_at: string;
   updated_at: string;
+  is_premium: boolean;
+  premium_expires_at: string;
 }
 
 export interface ApiKeyInfo {

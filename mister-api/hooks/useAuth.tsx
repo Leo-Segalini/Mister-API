@@ -144,15 +144,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Vérifier d'abord s'il y a un token dans le localStorage
         let hasToken = false;
-        let token = null;
         if (typeof window !== 'undefined') {
-          token = localStorage.getItem('access_token');
+          const token = localStorage.getItem('access_token');
           hasToken = !!token;
           console.log(`🔑 Token in localStorage: ${hasToken ? 'Found' : 'Not found'}`);
-          if (hasToken) {
-            console.log(`🔑 Token length: ${token?.length} characters`);
-            console.log(`🔑 Token preview: ${token?.substring(0, 20)}...`);
-          }
         }
         
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
@@ -223,8 +218,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Délai pour s'assurer que l'API est prête et que le localStorage est accessible
-    const timer = setTimeout(initializeAuth, 200);
+    // Délai pour s'assurer que l'API est prête
+    const timer = setTimeout(initializeAuth, 100);
     
     return () => {
       isMounted = false;
@@ -269,18 +264,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
-        // Récupérer le profil utilisateur complet pour avoir accès au statut premium
-        try {
-          console.log('👤 Fetching complete user profile...');
-          const completeProfile = await apiService.getProfile();
-          console.log('👤 Complete profile retrieved:', completeProfile);
-          setUser(completeProfile);
-        } catch (profileError) {
-          console.warn('⚠️ Could not fetch complete profile, using basic user data:', profileError);
-          // Fallback vers les données de base si la récupération du profil échoue
-          setUser(response.data.user);
-        }
-        
+        setUser(response.data.user);
+        console.log('👤 User state updated:', response.data.user);
         // Rediriger vers le dashboard après connexion réussie
         router.push('/dashboard');
       } else {
