@@ -86,6 +86,7 @@ function PaymentContent() {
       addDebugLog(`🚀 [PAYMENT] Prix utilisé: ${premiumPriceId}`);
       addDebugLog(`🚀 [PAYMENT] Utilisateur: ${user?.id}`);
       addDebugLog(`🚀 [PAYMENT] API URL: ${process.env.NEXT_PUBLIC_API_URL}`);
+      addDebugLog(`🍪 [PAYMENT] Cookies disponibles: ${document.cookie}`);
 
       // Vérifier que l'utilisateur est connecté
       if (!user?.id) {
