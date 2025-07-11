@@ -77,19 +77,23 @@ export class AuthController {
       
       // Définir les cookies sécurisés
       if (session) {
-        res.cookie('access_token', session.access_token, {
+        const cookieOptions = {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-          maxAge: session.expires_in * 1000, // Convertir en millisecondes
-        });
+          sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
+          maxAge: session.expires_in * 1000,
+          path: '/',
+        };
+
+        res.cookie('access_token', session.access_token, cookieOptions);
+        res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
         
         res.cookie('refresh_token', session.refresh_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          ...cookieOptions,
           maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
         });
+        
+        this.logger.log(`🍪 Cookies définis pour ${user?.email}`);
       }
 
       return {
@@ -179,9 +183,10 @@ export class AuthController {
         const cookieOptions = {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax' as const, // Changé de 'strict' à 'lax' pour CORS
+          sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
           maxAge: session.expires_in * 1000,
           path: '/',
+          // Pas de domaine spécifique pour permettre le cross-origin
         };
 
         res.cookie('access_token', session.access_token, cookieOptions);
@@ -193,6 +198,12 @@ export class AuthController {
         });
         
         this.logger.log(`🍪 Cookies définis pour ${user?.email}`);
+        this.logger.log(`🍪 Cookie options:`, {
+          httpOnly: cookieOptions.httpOnly,
+          secure: cookieOptions.secure,
+          sameSite: cookieOptions.sameSite,
+          path: cookieOptions.path,
+        });
       }
 
       this.logger.log(`✅ Connexion réussie pour: ${user?.email}`);
@@ -290,17 +301,19 @@ export class AuthController {
       const session = await this.supabaseService.refreshToken(refreshTokenDto.refresh_token);
       
       // Mettre à jour les cookies
-      res.cookie('access_token', session.access_token, {
+      const cookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
         maxAge: session.expires_in * 1000,
-      });
+        path: '/',
+      };
+
+      res.cookie('access_token', session.access_token, cookieOptions);
+      res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
       
       res.cookie('refresh_token', session.refresh_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        ...cookieOptions,
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
       });
 
