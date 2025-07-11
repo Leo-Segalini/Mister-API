@@ -32,6 +32,8 @@ function PaymentContent() {
   
   const [isLoading, setIsLoading] = useState(false);
   const [premiumPriceId, setPremiumPriceId] = useState<string>('price_1RiIyuQQFSQSRXWkrY9vgZa1'); // Fallback
+  const [debugModal, setDebugModal] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   // Logs de débogage pour l'authentification
   useEffect(() => {
@@ -68,22 +70,40 @@ function PaymentContent() {
     }
   }, [user, router, showError]);
 
+  const addDebugLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLogs(prev => [...prev, `[${timestamp}] ${message}`]);
+    console.log(message);
+  };
+
   const handleUpgradeToPremium = async () => {
     try {
       setIsLoading(true);
-      console.log('🚀 [PAYMENT] Création de la session de paiement Premium...');
-      console.log('🚀 [PAYMENT] Prix utilisé:', premiumPriceId);
-      console.log('🚀 [PAYMENT] Utilisateur:', user?.id);
+      setDebugModal(true);
+      setDebugLogs([]);
+      
+      addDebugLog('🚀 [PAYMENT] Création de la session de paiement Premium...');
+      addDebugLog(`🚀 [PAYMENT] Prix utilisé: ${premiumPriceId}`);
+      addDebugLog(`🚀 [PAYMENT] Utilisateur: ${user?.id}`);
+      addDebugLog(`🚀 [PAYMENT] API URL: ${process.env.NEXT_PUBLIC_API_URL}`);
 
       // Vérifier que l'utilisateur est connecté
       if (!user?.id) {
         throw new Error('Utilisateur non connecté');
       }
 
+      // Test direct de l'endpoint
+      addDebugLog('🔧 [PAYMENT] Test direct de l\'endpoint...');
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mister-api.onrender.com';
+      const endpoint = '/api/v1/payments/create-checkout-session';
+      const url = `${baseUrl}${endpoint}`;
+      addDebugLog(`🔧 [PAYMENT] URL construite: ${url}`);
+
       // Créer une session de checkout Stripe via l'API
       const session = await apiService.createCheckoutSession(premiumPriceId);
 
-      console.log('✅ [PAYMENT] Session créée:', session);
+      addDebugLog('✅ [PAYMENT] Session créée:');
+      addDebugLog(JSON.stringify(session, null, 2));
       
       if (session.url) {
         // Ouvrir Stripe dans une nouvelle fenêtre/onglet
@@ -131,6 +151,8 @@ function PaymentContent() {
       }
 
     } catch (error: any) {
+      addDebugLog(`❌ [PAYMENT] Erreur: ${error.message}`);
+      addDebugLog(`❌ [PAYMENT] Stack: ${error.stack}`);
       console.error('❌ [PAYMENT] Erreur lors de la création de la session:', error);
       
       // Gestion spécifique des erreurs
@@ -337,6 +359,38 @@ function PaymentContent() {
           </div>
         </motion.div>
       </div>
+
+      {/* Modale de débogage */}
+      {debugModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">🔧 Debug - Paiement</h3>
+              <button
+                onClick={() => setDebugModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="bg-black rounded p-4 h-96 overflow-y-auto font-mono text-sm">
+              {debugLogs.map((log, index) => (
+                <div key={index} className="text-green-400 mb-1">
+                  {log}
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setDebugModal(false)}
+                className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

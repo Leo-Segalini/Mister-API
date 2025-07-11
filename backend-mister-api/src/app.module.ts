@@ -177,7 +177,26 @@ import { SupabaseAuthMiddleware } from './middleware/supabase-auth.middleware';
   exports: [SupabaseService, ApiKeyService, NewsletterService],
 })
 export class AppModule implements NestModule {
+  constructor() {
+    console.log('🚀 AppModule initialized');
+    console.log('📋 Controllers loaded:', [
+      'AppController',
+      'PunchlineController', 
+      'AnimalController', 
+      'AuthController', 
+      'ApiKeyController', 
+      'StatsController', 
+      'PaysDuMondeController', 
+      'SecurityController', 
+      'AdminController', 
+      'PaymentController', 
+      'WebhookController',
+      'NewsletterController',
+    ]);
+  }
+
   configure(consumer: MiddlewareConsumer) {
+    console.log('🔧 Configuring middleware...');
     // Appliquer le middleware d'authentification à toutes les routes sauf auth et API
     consumer
       .apply(SupabaseAuthMiddleware)
@@ -195,5 +214,6 @@ export class AppModule implements NestModule {
         'stats/*path', // Statistiques publiques
       )
       .forRoutes('*');
+    console.log('✅ Middleware configured');
   }
 }
