@@ -1,6 +1,7 @@
 <div align="center">
   <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="NestJS" />
-  <h1>🚀 Mister API - Plateforme Complète</h1>
+  <img src="https://nextjs.org/static/blog/next-15/next-15.png" width="120" alt="Next.js" />
+  <h1>🚀 Punchiline API - Plateforme Complète</h1>
   <p><strong>API RESTful + Interface Web pour la gestion de citations, animaux, pays et paiements</strong></p>
 </div>
 
@@ -45,7 +46,7 @@
 
 ## 🎯 Vue d'ensemble
 
-**Mister API** est une plateforme complète comprenant :
+**Punchiline API** est une plateforme complète comprenant :
 
 - **Backend API** : API RESTful sécurisée avec NestJS
 - **Frontend Web** : Interface moderne avec Next.js
@@ -66,7 +67,7 @@
 ## 🏗️ Architecture
 
 ```
-Mister API/
+Punchiline API/
 ├── backend-mister-api/          # API Backend (NestJS)
 │   ├── src/
 │   │   ├── controllers/         # Contrôleurs REST
@@ -111,7 +112,7 @@ Mister API/
 ### 1. Cloner le projet
 ```bash
 git clone <repository-url>
-cd "Mister-API"
+cd "Punchiline API"
 ```
 
 ### 2. Configuration Backend
