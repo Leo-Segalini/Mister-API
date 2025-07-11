@@ -15,7 +15,7 @@ async function bootstrap() {
   app.setGlobalPrefix(configService.get('API_PREFIX', 'api/v1'));
 
   // Middleware pour capturer le body brut des webhooks Stripe
-  app.use('/api/v1/payment/webhook', (req: Request, res: Response, next: NextFunction) => {
+  app.use('/api/v1/payments/webhook', (req: Request, res: Response, next: NextFunction) => {
     let data = '';
     req.setEncoding('utf8');
     req.on('data', (chunk) => {

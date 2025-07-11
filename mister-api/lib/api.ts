@@ -67,12 +67,15 @@ class ApiService {
       method: config.method || 'GET',
       headers: config.headers,
       body: config.body ? 'present' : 'none',
-      retryCount
+      retryCount,
+      credentials: config.credentials,
+      cookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
     });
 
     try {
       const response = await fetch(url, config);
       console.log(`📡 Response status: ${response.status} for ${url}`);
+      console.log(`📡 Response headers:`, Object.fromEntries(response.headers.entries()));
       
       // Vérifier si la réponse contient du JSON
       const contentType = response.headers.get('content-type');
