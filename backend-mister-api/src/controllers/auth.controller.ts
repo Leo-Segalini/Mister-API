@@ -294,12 +294,13 @@ export class AuthController {
       if (!req.user?.id) {
         throw new UnauthorizedException('Utilisateur non authentifié');
       }
-      const profile = await this.supabaseService.getUserProfile(req.user.id);
       
+      // Retourner directement les données utilisateur déjà récupérées par le guard
+      // qui contiennent toutes les informations du profil, y compris le statut premium
       return {
         success: true,
         message: 'Profil récupéré avec succès',
-        data: profile
+        data: req.user
       };
     } catch (error) {
       throw new UnauthorizedException('Erreur lors de la récupération du profil');

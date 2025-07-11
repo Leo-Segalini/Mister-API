@@ -27,6 +27,10 @@ export interface User {
   is_premium: boolean;
   premium_expires_at?: string;
   stripe_customer_id?: string;
+  conditions_generales_acceptees?: boolean;
+  politique_confidentialite_acceptee?: boolean;
+  date_acceptation_conditions?: string;
+  date_acceptation_politique?: string;
   created_at: string;
   updated_at: string;
   role?: 'user' | 'admin'; // Rôle utilisateur
@@ -131,19 +135,6 @@ export interface Payment {
   metadata: any;
   created_at: string;
   updated_at: string;
-}
-
-// Types pour les abonnements
-export interface Subscription {
-  id: string;
-  status: string;
-  currentPeriodStart: number;
-  currentPeriodEnd: number;
-  cancelAtPeriodEnd: boolean;
-  items: Array<{
-    priceId: string;
-    quantity: number;
-  }>;
 }
 
 // Types pour les réponses API

@@ -118,21 +118,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
       
-      // Si c'est une erreur réseau ou temporaire, ne pas considérer comme invalide
+      // Si c'est une erreur réseau, ne pas considérer comme invalide
       if (error.message && (
         error.message.includes('Serveur indisponible') ||
         error.message.includes('Erreur de connexion au serveur') ||
-        error.message.includes('fetch') ||
-        error.message.includes('timeout') ||
-        error.message.includes('network')
+        error.message.includes('fetch')
       )) {
         console.log('🌐 Network error, keeping current session state');
         return false;
       }
       
-      // Pour les autres erreurs, ne pas considérer comme invalide immédiatement
-      // Attendre un peu avant de décider
-      console.log('⚠️ Other error, but keeping session state for now');
+      // Pour les autres erreurs, considérer comme invalide
+      console.log('❌ Other error, session invalid');
       return false;
     }
   }, []);
@@ -177,16 +174,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (isValid && isMounted) {
             console.log('✅ Valid session found, user authenticated');
           } else if (!isValid && isMounted) {
-            console.log('⚠️ Session validation failed, but keeping user logged in for now');
-            // Ne pas rediriger immédiatement, laisser l'utilisateur rester connecté
-            // La validation périodique s'occupera de vérifier plus tard
+            console.log('📭 Invalid session, redirecting to login');
+            // Rediriger vers la page de connexion si on est sur une page protégée
+            if (typeof window !== 'undefined') {
+              const currentPath = window.location.pathname;
+              const protectedPaths = ['/dashboard', '/payment'];
+              if (protectedPaths.some(path => currentPath.startsWith(path))) {
+                console.log('🔄 Redirecting to login page');
+                router.push('/login');
+              }
+            }
           }
         } else {
-          console.log('📭 No token found, checking if on protected page');
-          // Pas de token, rediriger vers la page de connexion seulement si on est sur une page protégée
+          console.log('📭 No token found, redirecting to login');
+          // Pas de token, rediriger vers la page de connexion si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment', '/profile'];
+            const protectedPaths = ['/dashboard', '/payment'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
               console.log('🔄 Redirecting to login page');
               router.push('/login');
@@ -199,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // En cas d'erreur, nettoyer et rediriger seulement si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment', '/profile'];
+            const protectedPaths = ['/dashboard', '/payment'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
               await signout();
             }
@@ -260,25 +264,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
-        // Utiliser d'abord les données de base de la connexion
-        console.log('👤 Utilisation des données de base de la connexion');
         setUser(response.data.user);
-        
-        // Attendre que le token soit bien stocké et que l'API soit prête
-        setTimeout(async () => {
-          try {
-            console.log('👤 Tentative de récupération du profil complet...');
-            const userProfile = await apiService.getProfile();
-            console.log('✅ Profil complet récupéré:', userProfile);
-            setUser(userProfile);
-          } catch (profileError) {
-            console.warn('⚠️ Erreur lors de la récupération du profil, gardant les données de base:', profileError);
-            // Ne pas changer l'état utilisateur si la récupération échoue
-          }
-        }, 3000); // Attendre 2 secondes pour s'assurer que tout est prêt
-        
+        console.log('👤 User state updated:', response.data.user);
         // Rediriger vers le dashboard après connexion réussie
-        console.log('🔄 Redirection vers le dashboard...');
         router.push('/dashboard');
       } else {
         throw new Error(response.message || 'Signin failed');
