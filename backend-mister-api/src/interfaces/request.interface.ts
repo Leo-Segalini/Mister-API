@@ -9,4 +9,7 @@ export interface AuthenticatedRequest extends Request {
     created_at?: Date;
     updated_at?: Date;
   };
+  headers: Request['headers'] & {
+    authorization?: string;
+  };
 } 
