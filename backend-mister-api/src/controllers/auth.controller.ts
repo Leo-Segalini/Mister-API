@@ -176,19 +176,23 @@ export class AuthController {
       
       // Définir les cookies sécurisés
       if (session) {
-        res.cookie('access_token', session.access_token, {
+        const cookieOptions = {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          sameSite: 'lax' as const, // Changé de 'strict' à 'lax' pour CORS
           maxAge: session.expires_in * 1000,
-        });
+          path: '/',
+        };
+
+        res.cookie('access_token', session.access_token, cookieOptions);
+        res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
         
         res.cookie('refresh_token', session.refresh_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
+          ...cookieOptions,
           maxAge: 30 * 24 * 60 * 60 * 1000, // 30 jours
         });
+        
+        this.logger.log(`🍪 Cookies définis pour ${user?.email}`);
       }
 
       this.logger.log(`✅ Connexion réussie pour: ${user?.email}`);
