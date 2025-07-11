@@ -178,7 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Rediriger vers la page de connexion si on est sur une page protégée
             if (typeof window !== 'undefined') {
               const currentPath = window.location.pathname;
-              const protectedPaths = ['/dashboard', '/payment'];
+              const protectedPaths = ['/dashboard', '/payment', '/profile'];
               if (protectedPaths.some(path => currentPath.startsWith(path))) {
                 console.log('🔄 Redirecting to login page');
                 router.push('/login');
@@ -190,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Pas de token, rediriger vers la page de connexion si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment'];
+            const protectedPaths = ['/dashboard', '/payment', '/profile'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
               console.log('🔄 Redirecting to login page');
               router.push('/login');
@@ -203,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // En cas d'erreur, nettoyer et rediriger seulement si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment'];
+            const protectedPaths = ['/dashboard', '/payment', '/profile'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
               await signout();
             }
@@ -264,16 +264,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
-        // Récupérer le profil complet de l'utilisateur après connexion
-        console.log('👤 Récupération du profil complet...');
-        try {
-          const userProfile = await apiService.getProfile();
-          console.log('✅ Profil complet récupéré:', userProfile);
-          setUser(userProfile);
-        } catch (profileError) {
-          console.warn('⚠️ Erreur lors de la récupération du profil, utilisation des données de base:', profileError);
-          setUser(response.data.user);
-        }
+        // Utiliser d'abord les données de base de la connexion
+        console.log('👤 Utilisation des données de base de la connexion');
+        setUser(response.data.user);
+        
+        // Attendre un peu que le token soit bien stocké, puis essayer de récupérer le profil complet
+        setTimeout(async () => {
+          try {
+            console.log('👤 Tentative de récupération du profil complet...');
+            const userProfile = await apiService.getProfile();
+            console.log('✅ Profil complet récupéré:', userProfile);
+            setUser(userProfile);
+          } catch (profileError) {
+            console.warn('⚠️ Erreur lors de la récupération du profil, gardant les données de base:', profileError);
+            // Ne pas changer l'état utilisateur si la récupération échoue
+          }
+        }, 1000); // Attendre 1 seconde
         
         // Rediriger vers le dashboard après connexion réussie
         router.push('/dashboard');

@@ -133,6 +133,19 @@ export interface Payment {
   updated_at: string;
 }
 
+// Types pour les abonnements
+export interface Subscription {
+  id: string;
+  status: string;
+  currentPeriodStart: number;
+  currentPeriodEnd: number;
+  cancelAtPeriodEnd: boolean;
+  items: Array<{
+    priceId: string;
+    quantity: number;
+  }>;
+}
+
 // Types pour les réponses API
 export interface ApiResponse<T> {
   success: boolean;

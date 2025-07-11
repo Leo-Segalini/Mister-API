@@ -22,7 +22,8 @@ import type {
   UpdateAnimalData,
   CreatePaysData,
   UpdatePaysData,
-  Payment
+  Payment,
+  Subscription
 } from '@/types';
 
 // Configuration des cookies
@@ -814,6 +815,26 @@ class ApiService {
     console.log('💰 Getting prices');
     
     const response = await this.request<ApiResponse<any[]>>('/api/v1/payments/prices');
+    return response.data;
+  }
+
+  /**
+   * Récupérer mes paiements
+   */
+  async getMyPayments(): Promise<Payment[]> {
+    console.log('💳 Getting my payments');
+    
+    const response = await this.request<ApiResponse<Payment[]>>('/api/v1/payments/my-payments');
+    return response.data;
+  }
+
+  /**
+   * Récupérer mes abonnements
+   */
+  async getUserSubscriptions(): Promise<Subscription[]> {
+    console.log('📋 Getting user subscriptions');
+    
+    const response = await this.request<ApiResponse<Subscription[]>>('/api/v1/payments/subscriptions');
     return response.data;
   }
 }
