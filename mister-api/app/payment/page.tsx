@@ -100,35 +100,31 @@ function PaymentContent() {
       const url = `${baseUrl}${endpoint}`;
       addDebugLog(`🔧 [PAYMENT] URL construite: ${url}`);
 
-      // Test direct de l'endpoint sans passer par l'API service
-      addDebugLog('🔧 [PAYMENT] Test direct de l\'endpoint...');
+      // Test simple pour vérifier que la requête POST fonctionne
+      addDebugLog('🔧 [PAYMENT] Test simple de la requête POST...');
       
-      // Récupérer le token depuis les cookies
-      const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-        const [key, value] = cookie.trim().split('=');
-        acc[key] = value;
-        return acc;
-      }, {} as Record<string, string>);
+      // Test 1: Requête vers un endpoint qui existe (prices)
+      addDebugLog('🔧 [PAYMENT] Test 1: Endpoint /api/v1/payments/prices (GET)');
+      const testResponse1 = await fetch(`${baseUrl}/api/v1/payments/prices`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      addDebugLog(`🍪 [PAYMENT] Cookies parsés: ${JSON.stringify(cookies, null, 2)}`);
+      addDebugLog(`📡 [PAYMENT] Test 1 - Status: ${testResponse1.status}`);
+      addDebugLog(`📡 [PAYMENT] Test 1 - URL: ${testResponse1.url}`);
       
-      const accessToken = cookies['access_token'] || cookies['sb-access-token'];
-      addDebugLog(`🔑 [PAYMENT] Token trouvé: ${accessToken ? 'Oui' : 'Non'}`);
-      
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
-      };
-      
-      // Ajouter le token dans le header Authorization si disponible
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-        addDebugLog('🔑 [PAYMENT] Token ajouté dans Authorization header');
-      }
+      // Test 2: Requête POST vers l'endpoint de paiement
+      addDebugLog('🔧 [PAYMENT] Test 2: Endpoint /api/v1/payments/create-checkout-session (POST)');
       
       const response = await fetch(url, {
         method: 'POST',
         credentials: 'include',
-        headers,
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           priceId: premiumPriceId,
           successUrl: `${window.location.origin}/dashboard?payment=success`,
