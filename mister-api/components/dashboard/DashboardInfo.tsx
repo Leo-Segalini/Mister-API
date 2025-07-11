@@ -360,7 +360,7 @@ export default function DashboardInfo({ user, isAdmin }: DashboardInfoProps) {
           {!user?.is_premium && (
             <button
               onClick={() => router.push('/payment')}
-              className="w-full mt-4 bg-yellow-400 text-black px-4 py-2 rounded-md hover:bg-yellow-500 transition-colors font-semibold"
+              className="w-full mt-4 bg-yellow-400 text-black px-4 py-2 rounded-md hover:bg-yellow-500 transition-colors font-semibold cursor-pointer"
             >
               Passer Premium
             </button>

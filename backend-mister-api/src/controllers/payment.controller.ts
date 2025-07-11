@@ -43,7 +43,9 @@ export class PaymentController {
   constructor(
     private readonly stripeService: StripeService,
     private readonly paymentService: PaymentService,
-  ) {}
+  ) {
+    console.log('🚀 PaymentController initialized');
+  }
 
   /**
    * Crée une session de paiement pour l'upgrade premium
