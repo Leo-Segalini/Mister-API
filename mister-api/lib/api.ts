@@ -12,6 +12,7 @@ import type {
   Pays,
   QuotaInfo,
   ApiStats,
+  ApiKeyUsageStats,
   CitationParams,
   AnimalParams,
   PaysParams,
