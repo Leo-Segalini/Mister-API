@@ -725,7 +725,11 @@ class ApiService {
     
     const response = await this.request<ApiResponse<{ url: string }>>('/api/v1/payments/create-checkout-session', {
       method: 'POST',
-      body: JSON.stringify({ priceId }),
+      body: JSON.stringify({ 
+        priceId,
+        successUrl: `${window.location.origin}/dashboard?payment=success`,
+        cancelUrl: `${window.location.origin}/payment?payment=cancelled`
+      }),
     });
     
     return response.data;
@@ -739,6 +743,9 @@ class ApiService {
     
     const response = await this.request<ApiResponse<{ url: string }>>('/api/v1/payments/create-portal-session', {
       method: 'POST',
+      body: JSON.stringify({ 
+        returnUrl: `${window.location.origin}/dashboard`
+      }),
     });
     
     return response.data;

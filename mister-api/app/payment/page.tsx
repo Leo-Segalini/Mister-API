@@ -27,11 +27,20 @@ import { apiService } from '@/lib/api';
 
 function PaymentContent() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
   const { showSuccess, showError } = useToastContext();
   
   const [isLoading, setIsLoading] = useState(false);
   const [premiumPriceId, setPremiumPriceId] = useState<string>('price_1RiIyuQQFSQSRXWkrY9vgZa1'); // Fallback
+
+  // Logs de débogage pour l'authentification
+  useEffect(() => {
+    console.log('🔍 [PAYMENT] État de l\'authentification:', {
+      user: user ? { id: user.id, email: user.email, is_premium: user.is_premium } : null,
+      authLoading,
+      isAuthenticated
+    });
+  }, [user, authLoading, isAuthenticated]);
 
   // Récupérer les prix disponibles au chargement
   useEffect(() => {
@@ -63,9 +72,15 @@ function PaymentContent() {
     try {
       setIsLoading(true);
       console.log('🚀 [PAYMENT] Création de la session de paiement Premium...');
+      console.log('🚀 [PAYMENT] Prix utilisé:', premiumPriceId);
+      console.log('🚀 [PAYMENT] Utilisateur:', user?.id);
+
+      // Vérifier que l'utilisateur est connecté
+      if (!user?.id) {
+        throw new Error('Utilisateur non connecté');
+      }
 
       // Créer une session de checkout Stripe via l'API
-      // Utiliser l'ID de prix récupéré ou le fallback
       const session = await apiService.createCheckoutSession(premiumPriceId);
 
       console.log('✅ [PAYMENT] Session créée:', session);
@@ -117,7 +132,16 @@ function PaymentContent() {
 
     } catch (error: any) {
       console.error('❌ [PAYMENT] Erreur lors de la création de la session:', error);
-      showError('Erreur', error.message || 'Impossible de créer la session de paiement');
+      
+      // Gestion spécifique des erreurs
+      if (error.message?.includes('401') || error.message?.includes('Non authentifié')) {
+        showError('Session expirée', 'Votre session a expiré. Veuillez vous reconnecter.');
+        router.push('/login');
+      } else if (error.message?.includes('popup')) {
+        showError('Popup bloqué', 'Veuillez autoriser les popups pour ce site et réessayer.');
+      } else {
+        showError('Erreur', error.message || 'Impossible de créer la session de paiement');
+      }
     } finally {
       setIsLoading(false);
     }
