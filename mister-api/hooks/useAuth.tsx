@@ -131,9 +131,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
         if (typeof window !== 'undefined') {
           const currentPath = window.location.pathname;
-          const publicPaths = ['/login', '/register', '/register/success', '/docs', '/pricing'];
+          const publicPaths = ['/', '/login', '/register', '/register/success', '/docs', '/pricing'];
           
-          // Ne pas considérer la page d'accueil comme publique si l'utilisateur pourrait être connecté
+          // Vérifier si c'est une page publique
           const isPublicPage = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
           
           if (isPublicPage) {

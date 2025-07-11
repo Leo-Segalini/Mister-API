@@ -75,11 +75,11 @@ export default function Header() {
               <Link href="/" className="flex items-center space-x-2 group">
                 <div className="relative">
                   <Image 
-                    src="/logo.svg" 
+                    src="/logo.png" 
                     alt="Mister API Logo" 
-                    width={32} 
-                    height={32}
-                    className="h-8 w-8"
+                    width={100} 
+                    height={100}
+                    className="h-12 w-12"
                   />
                 </div>
                 <span className="text-xl font-bold text-white group-hover:text-green-400 transition-colors duration-300">

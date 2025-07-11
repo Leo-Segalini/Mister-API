@@ -20,7 +20,7 @@ const Footer = () => {
               whileHover={{ scale: 1.05 }}
               className="flex items-center space-x-2 mb-4"
             >
-              <Logo width={24} height={24} className="text-green-400" />
+              <Logo width={100} height={100}/>
               <span className="text-lg font-bold">Mister API</span>
             </motion.div>
             <p className="text-gray-400 mb-4">
