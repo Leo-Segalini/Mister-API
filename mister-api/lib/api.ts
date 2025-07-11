@@ -54,6 +54,15 @@ class ApiService {
   ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
     
+    console.log('🔧 Request details:', {
+      baseUrl: this.baseUrl,
+      endpoint,
+      constructedUrl: url,
+      method: options.method || 'GET',
+      hasBody: !!options.body,
+      retryCount
+    });
+    
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
@@ -725,16 +734,29 @@ class ApiService {
    */
   async createCheckoutSession(priceId: string): Promise<{ url: string }> {
     console.log('💳 Creating checkout session for price:', priceId);
+    console.log('🌐 Base URL:', this.baseUrl);
+    console.log('🔗 Full URL:', `${this.baseUrl}/api/v1/payments/create-checkout-session`);
+    
+    const successUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://mister-api.vercel.app'}/dashboard?payment=success`;
+    const cancelUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://mister-api.vercel.app'}/payment?payment=cancelled`;
+    
+    console.log('✅ Success URL:', successUrl);
+    console.log('❌ Cancel URL:', cancelUrl);
+    
+    const requestBody = {
+      priceId,
+      successUrl,
+      cancelUrl,
+    };
+    
+    console.log('📦 Request body:', requestBody);
     
     const response = await this.request<ApiResponse<{ url: string }>>('/api/v1/payments/create-checkout-session', {
       method: 'POST',
-      body: JSON.stringify({ 
-        priceId,
-        successUrl: `${window.location.origin}/dashboard?payment=success`,
-        cancelUrl: `${window.location.origin}/payment?payment=cancelled`
-      }),
+      body: JSON.stringify(requestBody),
     });
     
+    console.log('✅ Checkout session created:', response);
     return response.data;
   }
 

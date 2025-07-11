@@ -67,6 +67,12 @@ export class PaymentController {
     @Body() data: { priceId?: string; successUrl: string; cancelUrl: string },
     @Req() req: AuthenticatedRequest,
   ): Promise<ApiResponse<any>> {
+    console.log('💳 PaymentController.createCheckoutSession called');
+    console.log('📦 Request data:', data);
+    console.log('👤 User:', req.user);
+    console.log('🔗 URL:', req.url);
+    console.log('🌐 Method:', req.method);
+    
     if (!req.user?.id) {
       throw new UnauthorizedException('Utilisateur non authentifié');
     }
@@ -77,6 +83,8 @@ export class PaymentController {
       successUrl: data.successUrl,
       cancelUrl: data.cancelUrl,
     });
+
+    console.log('✅ Session created:', session.id);
 
     return {
       success: true,

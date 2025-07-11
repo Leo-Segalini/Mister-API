@@ -16,6 +16,7 @@ async function bootstrap() {
 
   // Middleware pour capturer le body brut des webhooks Stripe
   app.use('/api/v1/payments/webhook', (req: Request, res: Response, next: NextFunction) => {
+    console.log('🔧 Webhook middleware triggered for:', req.url);
     let data = '';
     req.setEncoding('utf8');
     req.on('data', (chunk) => {
