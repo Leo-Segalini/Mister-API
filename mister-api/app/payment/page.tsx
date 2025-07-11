@@ -99,9 +99,33 @@ function PaymentContent() {
       const url = `${baseUrl}${endpoint}`;
       addDebugLog(`🔧 [PAYMENT] URL construite: ${url}`);
 
-      // Créer une session de checkout Stripe via l'API
-      const session = await apiService.createCheckoutSession(premiumPriceId);
+      // Test direct de l'endpoint sans passer par l'API service
+      addDebugLog('🔧 [PAYMENT] Test direct de l\'endpoint...');
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          priceId: premiumPriceId,
+          successUrl: `${window.location.origin}/dashboard?payment=success`,
+          cancelUrl: `${window.location.origin}/payment?payment=cancelled`
+        })
+      });
 
+      addDebugLog(`📡 [PAYMENT] Response status: ${response.status}`);
+      addDebugLog(`📡 [PAYMENT] Response URL: ${response.url}`);
+      addDebugLog(`📡 [PAYMENT] Response headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        addDebugLog(`❌ [PAYMENT] Error response: ${errorText}`);
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const session = await response.json();
       addDebugLog('✅ [PAYMENT] Session créée:');
       addDebugLog(JSON.stringify(session, null, 2));
       
