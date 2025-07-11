@@ -14,6 +14,8 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
       const token = req.cookies['access_token'] || req.cookies['sb-access-token'];
       
       this.logger.debug(`🔍 Checking authentication for ${req.method} ${req.path}`);
+      this.logger.debug(`🔗 Full URL: ${req.originalUrl}`);
+      this.logger.debug(`🌐 Host: ${req.get('host')}`);
       this.logger.debug(`🍪 Available cookies: ${Object.keys(req.cookies).join(', ')}`);
       this.logger.debug(`🍪 All cookies:`, req.cookies);
       this.logger.debug(`🌐 Origin: ${req.headers.origin}`);
