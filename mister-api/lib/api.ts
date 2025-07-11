@@ -327,6 +327,21 @@ class ApiService {
   }
 
   /**
+   * Changer le mot de passe
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    console.log('🔐 Changing password');
+    
+    await this.request<ApiResponse<void>>('/api/v1/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword
+      }),
+    });
+  }
+
+  /**
    * Renvoyer l'email de confirmation
    */
   async resendConfirmationEmail(email: string): Promise<void> {

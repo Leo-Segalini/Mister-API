@@ -550,7 +550,13 @@ export default function Register() {
                   className="h-4 w-4 text-green-400 focus:ring-green-400 border-gray-600 rounded bg-gray-900/50 mt-1 disabled:opacity-50"
                 />
                 <label htmlFor="politique_confidentialite" className="ml-2 block text-sm text-gray-300">
-                  <span className="font-medium">J'accepte la politique de confidentialité *</span>
+                  <span className="font-medium">
+                    J'accepte la{' '}
+                    <Link href="/politique-confidentialite" target="_blank" className="text-green-400 hover:text-green-300 underline">
+                      politique de confidentialité
+                    </Link>{' '}
+                    *
+                  </span>
                   <p className="text-xs text-gray-400 mt-1">
                     Nous collectons et traitons vos données personnelles conformément au RGPD. 
                     Vos données ne seront jamais vendues à des tiers.
@@ -569,6 +575,11 @@ export default function Register() {
                   <p><strong>Conservation :</strong> Jusqu'à suppression du compte</p>
                   <p><strong>Vos droits :</strong> Accès, rectification, suppression, portabilité</p>
                   <p><strong>Contact :</strong> privacy@mister-api.com</p>
+                  <div className="pt-2 border-t border-gray-600">
+                    <Link href="/politique-confidentialite" target="_blank" className="text-green-400 hover:text-green-300 underline text-xs">
+                      📖 Lire la politique de confidentialité complète
+                    </Link>
+                  </div>
                 </div>
               </details>
             </div>
@@ -590,7 +601,13 @@ export default function Register() {
                   className="h-4 w-4 text-green-400 focus:ring-green-400 border-gray-600 rounded bg-gray-900/50 mt-1 disabled:opacity-50"
                 />
                 <label htmlFor="conditions_generales" className="ml-2 block text-sm text-gray-300">
-                  <span className="font-medium">J'accepte les conditions générales d'utilisation *</span>
+                  <span className="font-medium">
+                    J'accepte les{' '}
+                    <Link href="/mentions-legales" target="_blank" className="text-green-400 hover:text-green-300 underline">
+                      conditions générales d'utilisation
+                    </Link>{' '}
+                    *
+                  </span>
                   <p className="text-xs text-gray-400 mt-1">
                     Vous acceptez d'utiliser nos APIs conformément à nos conditions de service.
                   </p>
@@ -608,6 +625,11 @@ export default function Register() {
                   <p><strong>Responsabilité :</strong> Utilisation à vos propres risques</p>
                   <p><strong>Modifications :</strong> Nous pouvons modifier les conditions avec préavis</p>
                   <p><strong>Résiliation :</strong> Possibilité de suspendre l'accès en cas de non-respect</p>
+                  <div className="pt-2 border-t border-gray-600">
+                    <Link href="/mentions-legales" target="_blank" className="text-green-400 hover:text-green-300 underline text-xs">
+                      📖 Lire les mentions légales complètes
+                    </Link>
+                  </div>
                 </div>
               </details>
             </div>

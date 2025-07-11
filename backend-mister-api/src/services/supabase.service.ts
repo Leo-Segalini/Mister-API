@@ -746,4 +746,45 @@ export class SupabaseService {
       return { role: 'user', isPremium: false };
     }
   }
+
+  /**
+   * Change le mot de passe d'un utilisateur
+   */
+  async changePassword(email: string, currentPassword: string, newPassword: string): Promise<boolean> {
+    try {
+      this.logger.log(`🔐 Tentative de changement de mot de passe pour: ${email}`);
+      
+      // D'abord, se connecter avec l'ancien mot de passe pour vérifier qu'il est correct
+      const { data: signInData, error: signInError } = await this.supabase.auth.signInWithPassword({
+        email: email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        this.logger.error(`❌ Mot de passe actuel incorrect pour ${email}: ${signInError.message}`);
+        return false;
+      }
+
+      if (!signInData.user) {
+        this.logger.error(`❌ Utilisateur non trouvé lors de la vérification du mot de passe: ${email}`);
+        return false;
+      }
+
+      // Maintenant, changer le mot de passe
+      const { data: updateData, error: updateError } = await this.supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        this.logger.error(`❌ Erreur lors du changement de mot de passe pour ${email}: ${updateError.message}`);
+        return false;
+      }
+
+      this.logger.log(`✅ Mot de passe changé avec succès pour: ${email}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`❌ Erreur lors du changement de mot de passe pour ${email}:`, error);
+      return false;
+    }
+  }
 } 

@@ -12,6 +12,7 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
+  Put,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -643,6 +644,7 @@ export class AuthController {
     summary: 'Mettre à jour l\'acceptation des conditions légales',
     description: 'Met à jour l\'acceptation des conditions générales et de la politique de confidentialité'
   })
+  @ApiBearerAuth()
   @SwaggerApiResponse({
     status: 200,
     description: 'Conditions légales mises à jour',
@@ -705,6 +707,136 @@ export class AuthController {
         throw error;
       }
       throw new BadRequestException('Erreur lors de la mise à jour des conditions légales');
+    }
+  }
+
+  @Put('profile')
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({
+    summary: 'Mettre à jour le profil utilisateur',
+    description: 'Met à jour les informations du profil de l\'utilisateur connecté'
+  })
+  @ApiBearerAuth()
+  @SwaggerApiResponse({
+    status: 200,
+    description: 'Profil mis à jour avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Profil mis à jour avec succès' },
+        data: { type: 'object' }
+      }
+    }
+  })
+  @SwaggerApiResponse({
+    status: 400,
+    description: 'Données invalides'
+  })
+  @SwaggerApiResponse({
+    status: 401,
+    description: 'Non authentifié'
+  })
+  async updateProfile(
+    @Req() req: AuthenticatedRequest,
+    @Body() updateProfileDto: any
+  ): Promise<ApiResponse<any>> {
+    try {
+      if (!req.user?.id) {
+        throw new UnauthorizedException('Utilisateur non authentifié');
+      }
+
+      // Filtrer les champs autorisés pour la mise à jour
+      const allowedFields = [
+        'nom', 'prenom', 'telephone', 'date_naissance', 
+        'adresse_postale', 'code_postal', 'ville', 'pays'
+      ];
+      
+      const updateData: any = {};
+      allowedFields.forEach(field => {
+        if (updateProfileDto[field] !== undefined) {
+          updateData[field] = updateProfileDto[field];
+        }
+      });
+
+      const updatedProfile = await this.supabaseService.updateUserProfile(req.user.id, updateData);
+      
+      return {
+        success: true,
+        message: 'Profil mis à jour avec succès',
+        data: updatedProfile
+      };
+    } catch (error) {
+      this.logger.error('Erreur lors de la mise à jour du profil:', error);
+      throw new BadRequestException('Erreur lors de la mise à jour du profil');
+    }
+  }
+
+  @Post('change-password')
+  @UseGuards(SupabaseAuthGuard)
+  @ApiOperation({
+    summary: 'Changer le mot de passe',
+    description: 'Change le mot de passe de l\'utilisateur connecté'
+  })
+  @ApiBearerAuth()
+  @SwaggerApiResponse({
+    status: 200,
+    description: 'Mot de passe changé avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Mot de passe changé avec succès' },
+        data: { type: 'object' }
+      }
+    }
+  })
+  @SwaggerApiResponse({
+    status: 400,
+    description: 'Données invalides'
+  })
+  @SwaggerApiResponse({
+    status: 401,
+    description: 'Non authentifié'
+  })
+  async changePassword(
+    @Req() req: AuthenticatedRequest,
+    @Body() changePasswordDto: { current_password: string; new_password: string }
+  ): Promise<ApiResponse<any>> {
+    try {
+      if (!req.user?.id) {
+        throw new UnauthorizedException('Utilisateur non authentifié');
+      }
+
+      const { current_password, new_password } = changePasswordDto;
+
+      // Vérifier que le nouveau mot de passe respecte les critères
+      if (new_password.length < 8) {
+        throw new BadRequestException('Le nouveau mot de passe doit contenir au moins 8 caractères');
+      }
+
+      // Changer le mot de passe via Supabase
+      const success = await this.supabaseService.changePassword(
+        req.user.email,
+        current_password,
+        new_password
+      );
+
+      if (!success) {
+        throw new BadRequestException('Impossible de changer le mot de passe. Vérifiez votre mot de passe actuel.');
+      }
+
+      return {
+        success: true,
+        message: 'Mot de passe changé avec succès',
+        data: { message: 'Votre mot de passe a été mis à jour avec succès' }
+      };
+    } catch (error) {
+      this.logger.error('Erreur lors du changement de mot de passe:', error);
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new BadRequestException('Erreur lors du changement de mot de passe');
     }
   }
 } 
