@@ -61,16 +61,10 @@ export default function Login() {
     password: ''
   });
 
-  // Nettoyer les cookies au chargement de la page de connexion
-  useEffect(() => {
-    // // console.log('🧹 [LOGIN] Nettoyage des cookies au chargement de la page');
-    clearAllSessionData();
-  }, []);
-
   // Rediriger si déjà connecté
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      // // console.log('✅ [LOGIN] Utilisateur déjà connecté, redirection vers dashboard');
+      console.log('✅ [LOGIN] Utilisateur déjà connecté, redirection vers dashboard');
       router.push('/dashboard');
     }
   }, [isAuthenticated, isLoading, router]);

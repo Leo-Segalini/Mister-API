@@ -208,14 +208,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('💥 Auth initialization error:', error);
         if (isMounted) {
-          // En cas d'erreur, nettoyer et rediriger seulement si on est sur une page protégée
-          if (typeof window !== 'undefined') {
-            const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment'];
-            if (protectedPaths.some(path => currentPath.startsWith(path))) {
-              await signout();
-            }
-          }
+          // En cas d'erreur, ne pas nettoyer automatiquement
+          // Laisser l'utilisateur essayer de se reconnecter
+          console.log('⚠️ Auth initialization error, keeping current state');
         }
       } finally {
         if (isMounted) {
@@ -233,36 +228,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [router, validateSession, signout]);
+  }, [router, validateSession]);
 
-  // Vérification périodique de la session (seulement après l'initialisation)
-  useEffect(() => {
-    if (!isInitialized || !user) return;
-
-    let isMounted = true;
-
-    const checkSession = async () => {
-      try {
-        // Vérifier périodiquement si la session est toujours valide
-        await apiService.getProfile();
-      } catch (error) {
-        // console.log('⚠️ Session expired, signing out...');
-        
-        if (isMounted) {
-          // console.log('❌ Session invalid, signing out...');
-          await signout();
-        }
-      }
-    };
-
-    // Vérifier toutes les 5 minutes
-    const interval = setInterval(checkSession, 5 * 60 * 1000);
-    
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [user, router, isInitialized, signout]);
+  // Désactiver la vérification périodique de session pour éviter les déconnexions automatiques
+  // useEffect(() => {
+  //   if (!isInitialized || !user) return;
+  //   // Vérification périodique désactivée pour éviter les déconnexions automatiques
+  // }, [user, router, isInitialized, signout]);
 
   const signin = async (email: string, password: string) => {
     try {
