@@ -63,10 +63,11 @@ export default function MentionsLegalesPage() {
               <h2 className="text-xl font-semibold text-white">Éditeur du Site</h2>
             </div>
             <div className="space-y-3 text-gray-300">
-              <p><strong className="text-white">Raison sociale :</strong> Mister API</p>
+              <p><strong className="text-white">Raison sociale :</strong> SEGALINI-BRIANT Léo</p>
               <p><strong className="text-white">Forme juridique :</strong> Entreprise individuelle</p>
+              <p><strong className="text-white">SIRET :</strong> 98341117400010</p>
               <p><strong className="text-white">Adresse :</strong> 37 BIS RUE DES CAMOMILLES, 97436 SAINT LEU, France</p>
-              <p><strong className="text-white">Email :</strong> contact@mister-api.com</p>
+              <p><strong className="text-white">Email :</strong> leo.segalini@outlook.com</p>
               <p><strong className="text-white">Téléphone :</strong> +33 6 70 96 33 71</p>
               <p><strong className="text-white">Directeur de publication :</strong> Léo SEGALINI-BRIANT</p>
             </div>
@@ -142,7 +143,7 @@ export default function MentionsLegalesPage() {
               </p>
               <p>
                 Si vous constatez une lacune, erreur ou ce qui parait être un dysfonctionnement, merci de bien vouloir le signaler 
-                par email à l'adresse <a href="mailto:contact@mister-api.com" className="text-green-400 hover:underline">contact@mister-api.com</a>.
+                par email à l'adresse <a href="mailto:leo.segalini@outlook.com" className="text-green-400 hover:underline">leo.segalini@outlook.com</a>.
               </p>
               <p>
                 Tout contenu téléchargé se fait aux risques et périls de l'utilisateur et sous sa seule responsabilité. 
@@ -234,8 +235,8 @@ export default function MentionsLegalesPage() {
             <div className="space-y-3 text-gray-300">
               <div className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-green-400" />
-                <a href="mailto:contact@mister-api.com" className="text-green-400 hover:underline">
-                  contact@mister-api.com
+                <a href="mailto:leo.segalini@outlook.com" className="text-green-400 hover:underline">
+                  leo.segalini@outlook.com
                 </a>
               </div>
               <div className="flex items-center space-x-3">

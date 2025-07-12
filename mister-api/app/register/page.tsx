@@ -8,6 +8,7 @@ import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Check, Calendar, MapPin, Phon
 import { useAuth } from '@/hooks/useAuth';
 import { useToastContext } from '@/components/ToastProvider';
 import type { RegisterData } from '@/types';
+import IntlTelInput from '@/components/IntlTelInput';
 
 // Fonction utilitaire pour nettoyer les cookies et le stockage
 const clearAllSessionData = (): void => {
@@ -132,6 +133,17 @@ export default function Register() {
     if (!emailRegex.test(formData.email)) {
       showError('Erreur', 'Veuillez saisir une adresse email valide');
       return;
+    }
+
+    // Validation de la date de naissance (si renseignée)
+    if (formData.date_naissance) {
+      const birth = new Date(formData.date_naissance);
+      const today = new Date();
+      const age = today.getFullYear() - birth.getFullYear() - (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
+      if (age < 12 || age > 100) {
+        showError('Erreur', 'Vous devez avoir entre 12 et 100 ans pour vous inscrire.');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -294,6 +306,16 @@ export default function Register() {
                   value={formData.date_naissance}
                   onChange={(e) => setFormData({ ...formData, date_naissance: e.target.value })}
                   className="w-full pl-10 pr-3 py-3 bg-gray-900/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-white placeholder-gray-400 disabled:opacity-50 transition-colors"
+                  min={(() => {
+                    const today = new Date();
+                    today.setFullYear(today.getFullYear() - 100);
+                    return today.toISOString().split('T')[0];
+                  })()}
+                  max={(() => {
+                    const today = new Date();
+                    today.setFullYear(today.getFullYear() - 12);
+                    return today.toISOString().split('T')[0];
+                  })()}
                 />
               </div>
             </div>
@@ -380,16 +402,16 @@ export default function Register() {
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  id="telephone"
-                  name="telephone"
-                  type="tel"
-                  disabled={isLoading}
-                  value={formData.telephone}
-                  onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                  className="w-full pl-10 pr-3 py-3 bg-gray-900/50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-white placeholder-gray-400 disabled:opacity-50 transition-colors"
-                  placeholder="+33 1 23 45 67 89"
-                />
+                <div className="pl-10">
+                  <IntlTelInput
+                    id="telephone"
+                    name="telephone"
+                    value={formData.telephone || ''}
+                    onChange={(val) => setFormData({ ...formData, telephone: val })}
+                    disabled={isLoading}
+                    placeholder="+33 6 12 34 56 78"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -574,7 +596,7 @@ export default function Register() {
                   <p><strong>Utilisation :</strong> Création de compte, accès aux APIs, support client</p>
                   <p><strong>Conservation :</strong> Jusqu'à suppression du compte</p>
                   <p><strong>Vos droits :</strong> Accès, rectification, suppression, portabilité</p>
-                  <p><strong>Contact :</strong> privacy@mister-api.com</p>
+                  <p><strong>Contact :</strong> leo.segalini@outlook.com</p>
                   <div className="pt-2 border-t border-gray-600">
                     <Link href="/politique-confidentialite" target="_blank" className="text-green-400 hover:text-green-300 underline text-xs">
                       📖 Lire la politique de confidentialité complète

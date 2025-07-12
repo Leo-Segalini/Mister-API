@@ -23,9 +23,9 @@ export const metadata: Metadata = {
   title: "Mister API - Collection d'APIs pour Développeurs",
   description: "Collection d'APIs pour développeurs - Citations historiques, Animaux, Pays du monde",
   keywords: "API, développeur, citations historiques, animaux, pays, REST, JSON, NestJS, Supabase",
-  authors: [{ name: "Mister API Team" }],
-  creator: "Mister API",
-  publisher: "Mister API",
+  authors: [{ name: "Léo Segalini" }],
+  creator: "SEGALINI-BRIANT Léo",
+  publisher: "SEGALINI-BRIANT Léo",
   formatDetection: {
     email: false,
     address: false,

@@ -193,7 +193,7 @@ export default function Header() {
                             { href: '/dashboard', label: 'Dashboard', icon: BarChart3, color: 'text-blue-400' },
                             // { href: '/stats', label: 'Statistiques', icon: BarChart3, color: 'text-green-400' }, // Temporairement masqué
                             { href: '/profile', label: 'Profil', icon: User, color: 'text-purple-400' },
-                            { href: '/settings', label: 'Paramètres', icon: Settings, color: 'text-gray-400' }
+                            // { href: '/settings', label: 'Paramètres', icon: Settings, color: 'text-gray-400' }
                           ].map((item) => (
                             <button
                               key={item.href}
@@ -363,17 +363,6 @@ export default function Header() {
                         >
                           <User className="h-4 w-4" />
                           <span className="text-sm font-medium">Profil</span>
-                        </button>
-                        
-                        <button
-                          onClick={() => {
-                            router.push('/settings');
-                            setIsMobileMenuOpen(false);
-                          }}
-                          className="w-full flex items-center space-x-3 p-3 text-gray-300 hover:text-green-400 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
-                        >
-                          <Settings className="h-4 w-4" />
-                          <span className="text-sm font-medium">Paramètres</span>
                         </button>
                       </div>
                       

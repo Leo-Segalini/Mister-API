@@ -74,7 +74,7 @@ export default function Contact() {
                 <Mail className="h-6 w-6 text-green-400 mt-1" />
                 <div>
                   <h3 className="font-semibold mb-1">Email</h3>
-                  <p className="text-gray-400">contact@mister-api.com</p>
+                  <p className="text-gray-400">leo.segalini@outlook.com</p>
                   <p className="text-sm text-gray-500">Réponse sous 24h</p>
                 </div>
               </div>
@@ -83,7 +83,7 @@ export default function Contact() {
                 <MessageSquare className="h-6 w-6 text-green-400 mt-1" />
                 <div>
                   <h3 className="font-semibold mb-1">Support technique</h3>
-                  <p className="text-gray-400">support@mister-api.com</p>
+                  <p className="text-gray-400">leo.segalini@outlook.com</p>
                   <p className="text-sm text-gray-500">Pour les problèmes techniques</p>
                 </div>
               </div>
@@ -92,7 +92,7 @@ export default function Contact() {
                 <Phone className="h-6 w-6 text-green-400 mt-1" />
                 <div>
                   <h3 className="font-semibold mb-1">Téléphone</h3>
-                  <p className="text-gray-400">+33 1 23 45 67 89</p>
+                  <p className="text-gray-400">+33 6 70 96 33 71</p>
                   <p className="text-sm text-gray-500">Lun-Ven, 9h-18h</p>
                 </div>
               </div>
@@ -101,8 +101,8 @@ export default function Contact() {
                 <MapPin className="h-6 w-6 text-green-400 mt-1" />
                 <div>
                   <h3 className="font-semibold mb-1">Adresse</h3>
-                  <p className="text-gray-400">123 Rue de l'Innovation</p>
-                  <p className="text-gray-400">75001 Paris, France</p>
+                  <p className="text-gray-400">37 BIS RUE DES CAMOMILLES</p>
+                  <p className="text-gray-400">97436 SAINT LEU, France</p>
                 </div>
               </div>
             </div>

@@ -71,9 +71,10 @@ export default function PolitiqueConfidentialitePage() {
               <h2 className="text-xl font-semibold text-white">Responsable du Traitement</h2>
             </div>
             <div className="space-y-3 text-gray-300">
-              <p><strong className="text-white">Identité :</strong> Mister API</p>
+              <p><strong className="text-white">Identité :</strong> SEGALINI-BRIANT Léo</p>
+              <p><strong className="text-white">SIRET :</strong> 98341117400010</p>
               <p><strong className="text-white">Adresse :</strong> 37 BIS RUE DES CAMOMILLES, 97436 SAINT LEU, France</p>
-              <p><strong className="text-white">Email :</strong> <a href="mailto:contact@mister-api.com" className="text-green-400 hover:underline">contact@mister-api.com</a></p>
+              <p><strong className="text-white">Email :</strong> <a href="mailto:leo.segalini@outlook.com" className="text-green-400 hover:underline">leo.segalini@outlook.com</a></p>
               <p><strong className="text-white">Téléphone :</strong> <a href="tel:+33670963371" className="text-green-400 hover:underline">+33 6 70 96 33 71</a></p>
               <p><strong className="text-white">Représentant légal :</strong> Léo SEGALINI-BRIANT</p>
             </div>
@@ -315,7 +316,7 @@ export default function PolitiqueConfidentialitePage() {
                 Pour exercer vos droits, vous pouvez nous contacter :
               </p>
               <div className="space-y-2">
-                <p><strong className="text-white">Par email :</strong> <a href="mailto:contact@mister-api.com" className="text-green-400 hover:underline">contact@mister-api.com</a></p>
+                <p><strong className="text-white">Par email :</strong> <a href="mailto:leo.segalini@outlook.com" className="text-green-400 hover:underline">leo.segalini@outlook.com</a></p>
                 <p><strong className="text-white">Par téléphone :</strong> <a href="tel:+33670963371" className="text-green-400 hover:underline">+33 6 70 96 33 71</a></p>
                 <p><strong className="text-white">Par courrier :</strong> 37 BIS RUE DES CAMOMILLES, 97436 SAINT LEU, France</p>
               </div>
@@ -428,7 +429,7 @@ export default function PolitiqueConfidentialitePage() {
                 Pour toute question relative à cette politique de confidentialité ou au traitement de vos données :
               </p>
               <div className="space-y-2">
-                <p><strong className="text-white">Email :</strong> <a href="mailto:contact@mister-api.com" className="text-green-400 hover:underline">contact@mister-api.com</a></p>
+                <p><strong className="text-white">Email :</strong> <a href="mailto:leo.segalini@outlook.com" className="text-green-400 hover:underline">leo.segalini@outlook.com</a></p>
                 <p><strong className="text-white">Téléphone :</strong> <a href="tel:+33670963371" className="text-green-400 hover:underline">+33 6 70 96 33 71</a></p>
               </div>
               <p className="mt-4">
