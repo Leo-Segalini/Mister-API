@@ -26,46 +26,18 @@ export const event = ({ action, category, label, value }: {
   }
 }
 
-// Initialize Google Analytics
+// Initialize Google Analytics (maintenant géré dans le head)
 export const initGA = () => {
-  if (typeof window !== 'undefined') {
-    // Load the Google Analytics script
-    const script1 = document.createElement('script')
-    script1.async = true
-    script1.src = `https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`
-    document.head.appendChild(script1)
-
-    // Initialize gtag
-    window.dataLayer = window.dataLayer || []
-    function gtag(...args: any[]) {
-      window.dataLayer.push(args)
-    }
-    window.gtag = gtag
-
-    gtag('js', new Date())
-    gtag('config', GA_TRACKING_ID, {
-      page_location: window.location.href,
-    })
-  }
+  // Le script est maintenant chargé dans le head du document
+  // Cette fonction est conservée pour la compatibilité
+  console.log('Google Analytics already loaded in head')
 }
 
-// Remove Google Analytics
+// Remove Google Analytics (maintenant géré via consent)
 export const removeGA = () => {
-  if (typeof window !== 'undefined') {
-    // Remove gtag script
-    const gtagScript = document.querySelector('script[src*="googletagmanager.com"]')
-    if (gtagScript) {
-      gtagScript.remove()
-    }
-
-    // Clear dataLayer
-    if (window.dataLayer) {
-      window.dataLayer = []
-    }
-
-    // Remove gtag function
-    (window as any).gtag = undefined
-  }
+  // Le script reste chargé mais le tracking est désactivé via consent
+  // Cette fonction est conservée pour la compatibilité
+  console.log('Google Analytics tracking disabled via consent')
 }
 
 // Declare global types

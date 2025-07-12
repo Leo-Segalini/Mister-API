@@ -65,6 +65,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
+      <head>
+        {/* Google Analytics - Chargé mais désactivé par défaut */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-NHVKMZLNRY"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              
+              // Désactiver le tracking par défaut jusqu'au consentement
+              gtag('consent', 'default', {
+                'analytics_storage': 'denied',
+                'ad_storage': 'denied'
+              });
+              
+              gtag('config', 'G-NHVKMZLNRY', {
+                'anonymize_ip': true
+              });
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >

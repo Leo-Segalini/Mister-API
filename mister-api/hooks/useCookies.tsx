@@ -144,16 +144,26 @@ export function useCookies() {
 function enableGoogleAnalytics() {
   if (typeof window === 'undefined') return;
   
-  // Activer Google Analytics
-  // Note: L'initialisation se fait via le hook useGoogleAnalytics
+  // Activer Google Analytics via consent
+  if ((window as any).gtag) {
+    (window as any).gtag('consent', 'update', {
+      'analytics_storage': 'granted',
+      'ad_storage': 'granted'
+    });
+  }
   // console.log('📊 Google Analytics activé');
 }
 
 function disableGoogleAnalytics() {
   if (typeof window === 'undefined') return;
   
-  // Désactiver Google Analytics
-  // Note: La suppression se fait via le hook useGoogleAnalytics
+  // Désactiver Google Analytics via consent
+  if ((window as any).gtag) {
+    (window as any).gtag('consent', 'update', {
+      'analytics_storage': 'denied',
+      'ad_storage': 'denied'
+    });
+  }
   // console.log('📊 Google Analytics désactivé');
 }
 

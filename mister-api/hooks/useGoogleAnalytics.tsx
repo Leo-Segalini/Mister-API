@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useCookies } from './useCookies'
-import { pageview, initGA, removeGA } from '@/lib/gtag'
+import { pageview } from '@/lib/gtag'
 
 export const useGoogleAnalytics = () => {
   const pathname = usePathname()
@@ -11,15 +11,21 @@ export const useGoogleAnalytics = () => {
   const { isCookieAllowed } = useCookies()
 
   useEffect(() => {
-    // Check if analytics cookies are accepted
-    if (isCookieAllowed('analytics')) {
-      // Initialize Google Analytics if not already done
-      if (typeof window !== 'undefined' && !(window as any).gtag) {
-        initGA()
+    // Gérer le consentement Google Analytics
+    if (typeof window !== 'undefined' && window.gtag) {
+      if (isCookieAllowed('analytics')) {
+        // Activer le tracking
+        window.gtag('consent', 'update', {
+          'analytics_storage': 'granted',
+          'ad_storage': 'granted'
+        });
+      } else {
+        // Désactiver le tracking
+        window.gtag('consent', 'update', {
+          'analytics_storage': 'denied',
+          'ad_storage': 'denied'
+        });
       }
-    } else {
-      // Remove Google Analytics if cookies are not accepted
-      removeGA()
     }
   }, [isCookieAllowed])
 
