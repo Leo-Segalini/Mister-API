@@ -61,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false); // Nouvel état pour éviter les conflits
   const router = useRouter();
 
   // Fonction de déconnexion sécurisée
@@ -151,6 +152,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('🔐 Initializing authentication...');
         
+        // Ne pas initialiser si une connexion est en cours
+        if (isSigningIn) {
+          console.log('⏳ Signin in progress, skipping initialization');
+          return;
+        }
+        
         // Vérifier d'abord s'il y a des cookies de session
         let hasCookies = false;
         if (typeof window !== 'undefined') {
@@ -228,7 +235,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [router, validateSession]);
+  }, [router, validateSession, isSigningIn]);
 
   // Désactiver la vérification périodique de session pour éviter les déconnexions automatiques
   // useEffect(() => {
@@ -238,17 +245,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signin = async (email: string, password: string) => {
     try {
-      // console.log('🚀 Starting signin process...');
+      console.log('🚀 Starting signin process...');
+      setIsSigningIn(true); // Marquer qu'une connexion est en cours
+      
       const response: AuthResponse = await apiService.signin({ email, password });
       
-      // console.log('✅ Signin successful:', response);
+      console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
         // Récupérer les données complètes du profil depuis public.users
-        // console.log('📋 Fetching complete user profile...');
+        console.log('📋 Fetching complete user profile...');
         try {
           const profileData = await apiService.getProfile();
-          // console.log('✅ Complete profile data:', profileData);
+          console.log('✅ Complete profile data:', profileData);
           
           // Fusionner les données d'authentification avec le profil complet
           const completeUserData = {
@@ -258,7 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             role: profileData.role || response.data.user.role || 'user'
           };
           
-          // console.log('👤 Complete user data with role:', completeUserData);
+          console.log('👤 Complete user data with role:', completeUserData);
           setUser(completeUserData);
         } catch (profileError) {
           console.warn('⚠️ Could not fetch complete profile, using auth data:', profileError);
@@ -267,11 +276,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ...response.data.user,
             role: response.data.user.role || 'user'
           };
+          console.log('👤 Using fallback user data:', fallbackUserData);
           setUser(fallbackUserData);
         }
         
-        // console.log('👤 User state updated with complete profile');
+        console.log('👤 User state updated with complete profile');
         // Rediriger vers le dashboard après connexion réussie
+        console.log('🔄 Redirecting to dashboard...');
         router.push('/dashboard');
       } else {
         throw new Error(response.message || 'Signin failed');
@@ -289,6 +300,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       throw error;
+    } finally {
+      setIsSigningIn(false); // Marquer que la connexion est terminée
     }
   };
 
