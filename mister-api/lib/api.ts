@@ -303,24 +303,11 @@ class ApiService {
   async getProfile(): Promise<User> {
     // console.log('👤 Getting user profile');
     
-    const response = await this.request<ApiResponse<User>>('/api/v1/auth/profile');
+    const response = await this.request<ApiResponse<User>>('/api/v1/auth/me');
     return response.data;
   }
 
-  /**
-   * Vérifier le rôle de l'utilisateur dans public.users
-   */
-  async checkAdminRole(): Promise<{ role: string | null }> {
-    // console.log('🔍 Checking admin role in public.users');
-    
-    try {
-      const response = await this.request<ApiResponse<{ role: string | null }>>('/api/v1/auth/check-admin-role');
-      return response.data;
-    } catch (error) {
-      console.error('❌ Error checking admin role:', error);
-      return { role: null };
-    }
-  }
+
 
   /**
    * Mise à jour du profil utilisateur
@@ -328,7 +315,7 @@ class ApiService {
   async updateProfile(userData: Partial<User>): Promise<User> {
     // console.log('✏️ Updating user profile');
     
-    const response = await this.request<ApiResponse<User>>('/api/v1/auth/profile', {
+    const response = await this.request<ApiResponse<User>>('/api/v1/auth/me', {
       method: 'PUT',
       body: JSON.stringify(userData),
     });
