@@ -64,11 +64,11 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
           // Mettre à jour les cookies avec le nouveau token
           const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none' as const,
+            secure: true, // Toujours HTTPS en production
+            sameSite: 'none' as const, // Requis pour cross-origin
             maxAge: 4 * 60 * 60 * 1000, // 4 heures
             path: '/',
-            domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+            // Ne pas définir de domain pour permettre cross-origin
           };
           
           res.cookie('access_token', refreshResult.newAccessToken, cookieOptions);

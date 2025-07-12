@@ -4,7 +4,6 @@ import type { NextRequest } from 'next/server';
 // Configuration des routes protégées
 const protectedRoutes = [
   '/dashboard',
-  '/admin',
   '/profile',
   '/api-keys',
   '/billing'
@@ -15,32 +14,54 @@ const adminRoutes = [
   '/admin'
 ];
 
-// Configuration des routes de connexion admin
-const adminLoginRoutes = [
-  '/gestion-administrateur-login'
-];
-
 // Configuration des routes publiques
 const publicRoutes = [
   '/',
   '/login',
   '/register',
+  '/register/success',
   '/pricing',
   '/docs',
   '/apis',
   '/contact',
-  '/admin-login'
+  '/mentions-legales',
+  '/politique-confidentialite'
 ];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // TEMPORAIREMENT DÉSACTIVÉ - Laisser la logique côté client gérer l'authentification
-  // pour éviter les conflits et les boucles infinies
+  // Gestion des routes API avec headers CORS
+  if (pathname.startsWith('/api/')) {
+    const response = NextResponse.next();
+    response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Refresh-Token');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    return response;
+  }
   
-  // // console.log(`🔍 Middleware - Route: ${pathname} (middleware temporairement désactivé)`);
-
-  // Ajouter des headers de sécurité seulement
+  // Vérification simplifiée de l'authentification
+  const hasAccessToken = request.cookies.get('access_token') || request.cookies.get('sb-access-token');
+  const isAuthenticated = !!hasAccessToken;
+  
+  // Vérification des routes protégées
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route));
+  
+  // Redirection si route protégée sans authentification
+  if (isProtectedRoute && !isAuthenticated) {
+    console.log(`🚫 Middleware: Accès refusé à ${pathname} - Redirection vers login`);
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+  
+  // Redirection si authentifié et sur page de connexion
+  if (isAuthenticated && (pathname === '/login' || pathname === '/register')) {
+    console.log(`✅ Middleware: Utilisateur connecté sur ${pathname} - Redirection vers dashboard`);
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+  
+  // Ajouter des headers de sécurité
   const response = NextResponse.next();
   
   // Headers de sécurité
@@ -48,14 +69,6 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
-  // Headers CORS pour les API
-  if (pathname.startsWith('/api/')) {
-    response.headers.set('Access-Control-Allow-Origin', process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
-  }
-
   return response;
 }
 

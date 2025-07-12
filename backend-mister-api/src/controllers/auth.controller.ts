@@ -84,11 +84,11 @@ export class AuthController {
         
         const cookieOptions = {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
+          secure: true, // Toujours HTTPS en production
+          sameSite: 'none' as const, // Requis pour cross-origin
           maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
-          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined, // Domaine pour cross-origin
+          // Ne pas définir de domain pour permettre cross-origin
         };
 
         res.cookie('access_token', session.access_token, cookieOptions);
@@ -187,11 +187,11 @@ export class AuthController {
         
         const cookieOptions = {
           httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
+          secure: true, // Toujours HTTPS en production
+          sameSite: 'none' as const, // Requis pour cross-origin
           maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
-          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined, // Domaine pour cross-origin
+          // Ne pas définir de domain pour permettre cross-origin
         };
 
         // Durée plus longue pour le refresh token (7 jours)

@@ -17,333 +17,198 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Fonction pour nettoyer complètement les cookies et le stockage local
-const clearAllSessionData = () => {
+/**
+ * Fonction pour nettoyer complètement les données de session
+ */
+const clearSessionData = () => {
   if (typeof window === 'undefined') return;
 
-  // console.log('🧹 Clearing all session data...');
+  console.log('🧹 Nettoyage des données de session...');
   
-  // Liste de tous les cookies d'authentification à supprimer
+  // Supprimer les cookies d'authentification
   const cookiesToClear = [
     'access_token',
+    'sb-access-token',
+    'refresh_token',
     'user_id',
-    'user_role',
-    'supabase.auth.token',
-    'sb-iqblthgenholebudyvcx-auth-token'
+    'user_role'
   ];
 
-  // Supprimer chaque cookie avec différentes options pour s'assurer qu'ils sont bien supprimés
   cookiesToClear.forEach(cookieName => {
-    // Supprimer avec path=/
     document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-    // Supprimer avec path=/ et domain=localhost
-    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=localhost;`;
-    // Supprimer sans path spécifique
-    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
+    document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
   });
 
-  // Nettoyer aussi le localStorage et sessionStorage
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
-    // console.log('🧹 LocalStorage cleared');
-  }
+  // Nettoyer le stockage local
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('supabase.auth.token');
   
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.clear();
-    // console.log('🧹 SessionStorage cleared');
-  }
+  sessionStorage.clear();
   
-  // console.log('🧹 Session cleanup complete');
+  console.log('✅ Nettoyage terminé');
+};
+
+/**
+ * Fonction pour vérifier si l'utilisateur a des tokens valides
+ */
+const hasValidTokens = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  
+  const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    acc[key] = value;
+    return acc;
+  }, {} as Record<string, string>);
+  
+  return !!(cookies['access_token'] || cookies['sb-access-token']);
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isSigningIn, setIsSigningIn] = useState(false); // Nouvel état pour éviter les conflits
   const router = useRouter();
 
-  // Fonction de déconnexion sécurisée
+  // Fonction de déconnexion
   const signout = useCallback(async () => {
     try {
-      // console.log('🚪 Signing out user');
-      await apiService.signout();
-    } catch (error) {
-      console.error('❌ Signout error:', error);
-    } finally {
+      console.log('🚪 Déconnexion en cours...');
       setUser(null);
-      // console.log('✅ User signed out, state cleared');
+      clearSessionData();
       
-      // Nettoyer complètement les données de session
-      clearAllSessionData();
-      
-      // Forcer la redirection vers la page de connexion avec rechargement complet
-      if (typeof window !== 'undefined') {
-        // console.log('🚪 Redirecting to login page with full reload...');
-        window.location.href = '/login';
+      // Appeler l'API de déconnexion
+      try {
+        await apiService.signout();
+      } catch (error) {
+        console.warn('⚠️ Erreur lors de la déconnexion API:', error);
       }
+      
+      // Rediriger vers la page de connexion
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('❌ Erreur lors de la déconnexion:', error);
     }
   }, []);
 
-  // Fonction pour extraire les tokens de session (cookies + localStorage)
-  const getSessionTokens = useCallback(() => {
-    if (typeof window === 'undefined') return null;
-    
-    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split('=');
-      acc[key] = value;
-      return acc;
-    }, {} as Record<string, string>);
-    
-    // Récupérer l'access token depuis les cookies ou le localStorage
-    const cookieToken = cookies['access_token'] || cookies['sb-access-token'];
-    const localStorageToken = localStorage.getItem('access_token');
-    const accessToken = cookieToken || localStorageToken;
-    
-    return {
-      accessToken,
-      hasCookies: !!cookieToken,
-      hasLocalStorage: !!localStorageToken,
-      hasTokens: !!(accessToken)
-    };
-  }, []);
-
-  // Fonction de validation de session
-  const validateSession = useCallback(async (): Promise<boolean> => {
+  // Fonction de connexion
+  const signin = async (email: string, password: string) => {
     try {
-      console.log('🔍 Validating session...');
+      console.log('🚀 Connexion en cours...');
+      setIsLoading(true);
       
-      // Vérifier d'abord s'il y a des tokens de session
-      const sessionTokens = getSessionTokens();
-      if (!sessionTokens || !sessionTokens.hasTokens) {
-        console.log('🔑 No session tokens found');
+      const response: AuthResponse = await apiService.signin({ email, password });
+      
+      if (response.success && response.data.user) {
+        const userData = {
+          ...response.data.user,
+          role: response.data.user.role || 'user'
+        };
+        
+        setUser(userData);
+        console.log('✅ Connexion réussie:', userData.email);
+        
+        // Rediriger vers le dashboard
+        router.push('/dashboard');
+      } else {
+        throw new Error(response.message || 'Erreur de connexion');
+      }
+    } catch (error) {
+      console.error('❌ Erreur de connexion:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fonction d'inscription
+  const signup = async (userData: RegisterData) => {
+    try {
+      console.log('📝 Inscription en cours...');
+      const response: AuthResponse = await apiService.signup(userData);
+      
+      if (response.success) {
+        console.log('✅ Inscription réussie');
+        router.push('/register/success');
+      } else {
+        throw new Error(response.message || 'Erreur d\'inscription');
+      }
+    } catch (error) {
+      console.error('❌ Erreur d\'inscription:', error);
+      throw error;
+    }
+  };
+
+  // Validation de session simplifiée
+  const validateSession = useCallback(async () => {
+    try {
+      console.log('🔍 Validation de session...');
+      
+      // Vérifier si on a des tokens
+      if (!hasValidTokens()) {
+        console.log('❌ Aucun token trouvé');
         return false;
       }
       
-      console.log('🔑 Session tokens found:', {
-        hasAccessToken: !!sessionTokens.accessToken,
-        tokenLength: sessionTokens.accessToken?.length || 0,
-        hasCookies: sessionTokens.hasCookies,
-        hasLocalStorage: sessionTokens.hasLocalStorage
-      });
+      // Récupérer le profil utilisateur
+      const userData = await apiService.getProfile();
       
-      // Validation de session simplifiée (profil mis en commentaire)
-      console.log('✅ Session validation simplified - using existing user data');
-      
-      // Si on a déjà un utilisateur en état, le considérer comme valide
-      if (user) {
-        console.log('✅ Using existing user data for session validation');
-        return true;
-      }
-      
-      // Sinon, essayer de récupérer le profil (fallback)
-      try {
-        const userData = await apiService.getProfile();
-        console.log('✅ Session valid, user data:', userData);
-        
+      if (userData) {
         const completeUserData = {
           ...userData,
           role: userData.role || 'user'
         };
         
         setUser(completeUserData);
+        console.log('✅ Session valide:', userData.email);
         return true;
-      } catch (error) {
-        console.warn('⚠️ Profile fetch failed, session may be invalid:', error);
-        return false;
       }
+      
+      return false;
     } catch (error: any) {
-      console.error('❌ Session validation failed:', error);
+      console.error('❌ Erreur de validation:', error);
       
-      // Si c'est une erreur 401 (non autorisé), la session est invalide
+      // Si erreur 401, nettoyer la session
       if (error.message && error.message.includes('401')) {
-        console.log('🔒 Session expired (401) - clearing cookies');
-        // Nettoyer les cookies en cas de session expirée
-        if (typeof window !== 'undefined') {
-          // Supprimer les cookies de session avec tous les domaines possibles
-          const domains = ['', '.vercel.app', '.mister-api.vercel.app'];
-          const paths = ['/', ''];
-          
-          domains.forEach(domain => {
-            paths.forEach(path => {
-              document.cookie = `access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
-              document.cookie = `sb-access-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
-            });
-          });
-        }
-        return false;
+        console.log('🔒 Session expirée, nettoyage...');
+        clearSessionData();
+        setUser(null);
       }
       
-      // Si c'est une erreur réseau, ne pas considérer comme invalide
-      if (error.message && (
-        error.message.includes('Serveur indisponible') ||
-        error.message.includes('Erreur de connexion au serveur') ||
-        error.message.includes('fetch')
-      )) {
-        console.log('🌐 Network error, keeping current session state');
-        return false;
-      }
-      
-      // Pour les autres erreurs, considérer comme invalide
-      console.log('❌ Other error, session invalid');
       return false;
     }
-  }, [getSessionTokens]);
+  }, []);
 
-  // Vérification automatique de l'authentification au démarrage
+  // Initialisation de l'authentification
   useEffect(() => {
-    let isMounted = true;
-
-    const initializeAuth = async () => {
+    const initAuth = async () => {
       try {
-        console.log('🔐 Initializing authentication...');
+        console.log('🔐 Initialisation de l\'authentification...');
         
-        // Ne pas initialiser si une connexion est en cours
-        if (isSigningIn) {
-          console.log('⏳ Signin in progress, skipping initialization');
+        // Vérifier si on est sur une page publique
+        const currentPath = window.location.pathname;
+        const publicPaths = ['/', '/login', '/register', '/register/success', '/docs', '/pricing', '/apis', '/contact'];
+        const isPublicPage = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
+        
+        if (isPublicPage) {
+          console.log('🌐 Page publique détectée');
+          setIsLoading(false);
           return;
         }
         
-        // Vérifier d'abord s'il y a des tokens de session
-        let hasTokens = false;
-        if (typeof window !== 'undefined') {
-          const sessionTokens = getSessionTokens();
-          hasTokens = sessionTokens?.hasTokens || false;
-          console.log(`🔑 Session tokens: ${hasTokens ? 'Found' : 'Not found'}`);
-        }
-        
-        // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
-        if (typeof window !== 'undefined') {
-          const currentPath = window.location.pathname;
-          const publicPaths = ['/', '/login', '/register', '/register/success', '/docs', '/pricing'];
-          
-          // Vérifier si c'est une page publique
-          const isPublicPage = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
-          
-          if (isPublicPage) {
-            console.log('🌐 Public page detected, skipping auth check');
-            setIsLoading(false);
-            setIsInitialized(true);
-            return;
-          }
-        }
-        
-        // Si on a des tokens, essayer de valider la session
-        if (hasTokens) {
-          console.log('🔍 Tokens found, validating session...');
-          const isValid = await validateSession();
-          
-          if (isValid && isMounted) {
-            console.log('✅ Valid session found, user authenticated');
-          } else if (!isValid && isMounted) {
-            console.log('📭 Invalid session, but not redirecting automatically');
-            // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
-          }
+        // Valider la session si on a des tokens
+        if (hasValidTokens()) {
+          await validateSession();
         } else {
-          console.log('📭 No tokens found, but not redirecting automatically');
-          // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
+          console.log('❌ Aucun token, utilisateur non connecté');
         }
       } catch (error) {
-        console.error('💥 Auth initialization error:', error);
-        if (isMounted) {
-          // En cas d'erreur, ne pas nettoyer automatiquement
-          // Laisser l'utilisateur essayer de se reconnecter
-          console.log('⚠️ Auth initialization error, keeping current state');
-        }
+        console.error('💥 Erreur d\'initialisation:', error);
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-          setIsInitialized(true);
-          console.log('🏁 Auth initialization complete');
-        }
+        setIsLoading(false);
       }
     };
 
-    // Délai pour s'assurer que l'API est prête
-    const timer = setTimeout(initializeAuth, 100);
-    
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-    };
-  }, [router, validateSession, isSigningIn]);
-
-  // Désactiver la vérification périodique de session pour éviter les déconnexions automatiques
-  // useEffect(() => {
-  //   if (!isInitialized || !user) return;
-  //   // Vérification périodique désactivée pour éviter les déconnexions automatiques
-  // }, [user, router, isInitialized, signout]);
-
-  const signin = async (email: string, password: string) => {
-    try {
-      console.log('🚀 Starting signin process...');
-      setIsSigningIn(true); // Marquer qu'une connexion est en cours
-      
-      const response: AuthResponse = await apiService.signin({ email, password });
-      
-      console.log('✅ Signin successful:', response);
-      
-      if (response.success && response.data.user) {
-        // Utiliser directement les données d'authentification (profil mis en commentaire)
-        console.log('📋 Using auth data directly (profile fetch commented out)...');
-        
-        // Utiliser les données de auth.users avec rôle par défaut
-        const userData = {
-          ...response.data.user,
-          role: response.data.user.role || 'user'
-        };
-        
-        console.log('👤 User data from auth:', userData);
-        setUser(userData);
-        
-        console.log('👤 User state updated with complete profile');
-        // Rediriger vers le dashboard après connexion réussie
-        console.log('🔄 Redirecting to dashboard...');
-        router.push('/dashboard');
-      } else {
-        throw new Error(response.message || 'Signin failed');
-      }
-    } catch (error: any) {
-      console.error('❌ Signin error:', error);
-      
-      // Gestion spécifique des erreurs réseau
-      if (error.message && error.message.includes('Serveur indisponible')) {
-        throw new Error('Serveur backend indisponible - Veuillez vérifier que le serveur est démarré sur http://localhost:3001');
-      }
-      
-      if (error.message && error.message.includes('Erreur de connexion au serveur')) {
-        throw new Error('Impossible de se connecter au serveur - Vérifiez votre connexion internet et que le backend est démarré');
-      }
-      
-      throw error;
-    } finally {
-      setIsSigningIn(false); // Marquer que la connexion est terminée
-    }
-  };
-
-  const signup = async (userData: RegisterData) => {
-    try {
-      // console.log('📝 Attempting signup for:', userData.email);
-      const response: AuthResponse = await apiService.signup(userData);
-      
-      // console.log('✅ Signup successful:', response);
-      
-      // Ne pas connecter automatiquement l'utilisateur après l'inscription
-      // L'utilisateur doit d'abord confirmer son email
-      if (response.success) {
-        // console.log('📧 User registered successfully, email confirmation required');
-        // Rediriger vers la page de succès
-        router.push('/register/success');
-      } else {
-        throw new Error(response.message || 'Signup failed');
-      }
-    } catch (error) {
-      console.error('❌ Signup error:', error);
-      throw error;
-    }
-  };
+    initAuth();
+  }, [validateSession]);
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin';
