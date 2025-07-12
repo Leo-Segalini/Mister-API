@@ -10,8 +10,9 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
-      // Récupération du token depuis les cookies HTTPS
-      const token = req.cookies['access_token'] || req.cookies['sb-access-token'];
+      // Récupération des tokens depuis les cookies HTTPS
+      const accessToken = req.cookies['access_token'] || req.cookies['sb-access-token'];
+      const refreshToken = req.cookies['refresh_token'] || req.cookies['sb-refresh-token'];
       
       this.logger.debug(`🔍 Checking authentication for ${req.method} ${req.path}`);
       this.logger.debug(`🔗 Full URL: ${req.originalUrl}`);
@@ -21,7 +22,7 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
       this.logger.debug(`🌐 Origin: ${req.headers.origin}`);
       this.logger.debug(`🔗 Referer: ${req.headers.referer}`);
       
-      if (!token) {
+      if (!accessToken) {
         this.logger.debug('❌ No access token found in cookies');
         // Si pas de token, on continue mais on marque l'utilisateur comme non authentifié
         req['user'] = null;
@@ -33,8 +34,18 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
 
       this.logger.debug('🔐 Token found, verifying with Supabase...');
 
-      // Vérification du token avec Supabase
-      const user = await this.supabaseService.verifyToken(token);
+      // Vérification et rafraîchissement automatique du token avec Supabase
+      const { user, newTokens, needsReauth } = await this.supabaseService.verifyAndRefreshToken(accessToken, refreshToken);
+      
+      if (needsReauth) {
+        this.logger.debug('❌ Session expired, reauthentication required');
+        // Session expirée, on continue mais sans authentification
+        req['user'] = null;
+        req['userProfile'] = null;
+        req['isAuthenticated'] = false;
+        req['userId'] = null;
+        return next();
+      }
       
       if (!user) {
         this.logger.debug('❌ Token verification failed');
@@ -44,6 +55,25 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
         req['isAuthenticated'] = false;
         req['userId'] = null;
         return next();
+      }
+
+      // Si de nouveaux tokens ont été générés, mettre à jour les cookies
+      if (newTokens) {
+        const cookieOptions = {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'none' as const,
+          maxAge: 4 * 60 * 60 * 1000, // 4 heures
+          path: '/',
+          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+        };
+
+        res.cookie('access_token', newTokens.access_token, cookieOptions);
+        res.cookie('sb-access-token', newTokens.access_token, cookieOptions);
+        res.cookie('refresh_token', newTokens.refresh_token, cookieOptions);
+        res.cookie('sb-refresh-token', newTokens.refresh_token, cookieOptions);
+        
+        this.logger.debug('🔄 Tokens refreshed and cookies updated');
       }
 
       this.logger.debug(`✅ Token verified for user: ${user.email}`);
