@@ -95,10 +95,10 @@ export default function Login() {
     setEmailNotConfirmed(false);
 
     try {
-      // // console.log('🚀 Starting login process...');
+      console.log('🚀 Début de la connexion...');
       await signin(formData.email, formData.password);
       
-      // // console.log('✅ Login successful, showing success message');
+      console.log('✅ Connexion réussie, redirection immédiate...');
       showSuccess('Connexion réussie !', 'Bienvenue sur Mister API !');
       
       // Tracker l'événement de connexion réussie
@@ -108,11 +108,9 @@ export default function Login() {
         label: 'success'
       });
       
-      // Rediriger vers le dashboard après un délai
-      setTimeout(() => {
-        // // console.log('🔄 Redirecting to dashboard...');
-        router.push('/dashboard');
-      }, 1500);
+      // Redirection immédiate vers le dashboard
+      console.log('🔄 Redirection vers dashboard...');
+      router.push('/dashboard');
 
     } catch (error: any) {
       console.error('❌ Login error:', error);

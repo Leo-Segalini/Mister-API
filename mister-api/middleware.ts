@@ -31,6 +31,9 @@ const publicRoutes = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
+  // TEMPORAIREMENT DÉSACTIVÉ - Éviter les conflits de redirection
+  // Réactiver une fois que la logique de connexion est stable
+  
   // Gestion des routes API avec headers CORS
   if (pathname.startsWith('/api/')) {
     const response = NextResponse.next();
@@ -41,25 +44,25 @@ export function middleware(request: NextRequest) {
     return response;
   }
   
-  // Vérification simplifiée de l'authentification
-  const hasAccessToken = request.cookies.get('access_token') || request.cookies.get('sb-access-token');
-  const isAuthenticated = !!hasAccessToken;
+  // Vérification simplifiée de l'authentification (DÉSACTIVÉE)
+  // const hasAccessToken = request.cookies.get('access_token') || request.cookies.get('sb-access-token');
+  // const isAuthenticated = !!hasAccessToken;
   
-  // Vérification des routes protégées
-  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route));
+  // Vérification des routes protégées (DÉSACTIVÉE)
+  // const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+  // const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route));
   
-  // Redirection si route protégée sans authentification
-  if (isProtectedRoute && !isAuthenticated) {
-    console.log(`🚫 Middleware: Accès refusé à ${pathname} - Redirection vers login`);
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  // Redirection si route protégée sans authentification (DÉSACTIVÉE)
+  // if (isProtectedRoute && !isAuthenticated) {
+  //   console.log(`🚫 Middleware: Accès refusé à ${pathname} - Redirection vers login`);
+  //   return NextResponse.redirect(new URL('/login', request.url));
+  // }
   
-  // Redirection si authentifié et sur page de connexion
-  if (isAuthenticated && (pathname === '/login' || pathname === '/register')) {
-    console.log(`✅ Middleware: Utilisateur connecté sur ${pathname} - Redirection vers dashboard`);
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
+  // Redirection si authentifié et sur page de connexion (DÉSACTIVÉE)
+  // if (isAuthenticated && (pathname === '/login' || pathname === '/register')) {
+  //   console.log(`✅ Middleware: Utilisateur connecté sur ${pathname} - Redirection vers dashboard`);
+  //   return NextResponse.redirect(new URL('/dashboard', request.url));
+  // }
   
   // Ajouter des headers de sécurité
   const response = NextResponse.next();

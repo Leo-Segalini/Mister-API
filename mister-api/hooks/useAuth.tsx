@@ -103,11 +103,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: response.data.user.role || 'user'
         };
         
+        // Mettre à jour immédiatement l'état utilisateur
         setUser(userData);
         console.log('✅ Connexion réussie:', userData.email);
         
-        // Rediriger vers le dashboard
-        router.push('/dashboard');
+        // Forcer la redirection immédiate
+        console.log('🔄 Redirection forcée vers dashboard...');
+        window.location.href = '/dashboard';
       } else {
         throw new Error(response.message || 'Erreur de connexion');
       }
