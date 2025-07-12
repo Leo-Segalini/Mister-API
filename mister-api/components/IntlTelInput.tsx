@@ -26,7 +26,9 @@ const darkStyles = `
   .iti__country {
     color: white !important;
   }
-  
+  .iti__search-input {
+    color: #374151 !important;
+  }
   .iti__country:hover {
     background-color: #374151 !important;
   }
