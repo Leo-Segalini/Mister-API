@@ -197,10 +197,23 @@ export class AppModule implements NestModule {
 
   configure(consumer: MiddlewareConsumer) {
     // console.log('🔧 Configuring middleware...');
-    // Appliquer le middleware d'authentification de manière plus ciblée
+    // Appliquer le middleware d'authentification à toutes les routes sauf auth et API
     consumer
       .apply(SupabaseAuthMiddleware)
-      .forRoutes('*'); // Le middleware gère maintenant lui-même les exclusions
+      .exclude(
+        'auth/*path', // Exclure toutes les routes d'authentification
+        'api-keys/*path', // Exclure les routes des clés API (gérées par le guard)
+        'api/v1/*path', // Exclure les routes API (gérées par ApiKeyGuard)
+        'webhook/*path', // Exclure les webhooks
+        'newsletter/subscribe', // Exclure l'abonnement newsletter
+        'newsletter/confirm', // Exclure la confirmation newsletter
+        'newsletter/unsubscribe', // Exclure le désabonnement newsletter
+        'payments/prices', // Exclure l'endpoint des prix (accessible sans auth)
+        '/', // Page d'accueil
+        'docs/*path', // Documentation
+        'stats/*path', // Statistiques publiques
+      )
+      .forRoutes('*');
     // console.log('✅ Middleware configured');
   }
 }

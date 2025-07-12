@@ -3,66 +3,43 @@
 import { useAuth } from './useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { apiService } from '@/lib/api';
 
 /**
  * Hook pour gérer les droits d'administration
- * Vérifie si l'utilisateur a le rôle admin dans public.users et redirige si nécessaire
+ * Utilise les données du contexte d'authentification pour vérifier le rôle admin
  */
 export function useAdmin(redirectTo = '/dashboard') {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [isCheckingRole, setIsCheckingRole] = useState<boolean>(false);
 
-  // Vérifier le rôle admin dans public.users
+  // Vérifier le rôle admin à partir des données utilisateur
   useEffect(() => {
-    const checkAdminRole = async () => {
-    // Attendre que l'authentification soit chargée
-      if (isLoading || !isAuthenticated) {
-        setIsAdmin(false);
-      return;
-    }
+    if (!isLoading && isAuthenticated && user) {
+      const adminStatus = user.role === 'admin';
+      setIsAdmin(adminStatus);
 
-      setIsCheckingRole(true);
-      
-      try {
-        // console.log('🔍 Checking admin role in public.users...');
-        const { role } = await apiService.checkAdminRole();
-        
-        // console.log('🔍 Admin role check result:', { role });
-        const adminStatus = role === 'admin';
-        setIsAdmin(adminStatus);
-
-    // Si l'utilisateur n'est pas admin, rediriger
-        if (!adminStatus) {
-          // console.log('🚫 Access denied: User is not admin in public.users');
-          router.push(redirectTo);
-        }
-      } catch (error) {
-        console.error('❌ Error checking admin role:', error);
-        setIsAdmin(false);
-        // En cas d'erreur, rediriger par sécurité
-      router.push(redirectTo);
-      } finally {
-        setIsCheckingRole(false);
+      // Si l'utilisateur n'est pas admin, rediriger
+      if (!adminStatus) {
+        console.log('🚫 Access denied: User is not admin');
+        router.push(redirectTo);
       }
-    };
-
-    checkAdminRole();
-  }, [isAuthenticated, isLoading, router, redirectTo]);
+    } else if (!isLoading && !isAuthenticated) {
+      setIsAdmin(false);
+    }
+  }, [isAuthenticated, isLoading, user, router, redirectTo]);
 
   useEffect(() => {
     // Si l'utilisateur n'est pas connecté, rediriger vers la connexion admin
     if (!isLoading && !isAuthenticated) {
-      router.push('/gestion-administrateur-login');
+      router.push('/admin-login');
       return;
     }
   }, [isAuthenticated, isLoading, router]);
 
   return {
     isAdmin,
-    isLoading: isLoading || isCheckingRole,
+    isLoading: isLoading,
     user,
     isAuthenticated
   };
@@ -73,39 +50,23 @@ export function useAdmin(redirectTo = '/dashboard') {
  * Utile pour afficher/masquer des éléments conditionnellement
  */
 export function useAdminCheck() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [isCheckingRole, setIsCheckingRole] = useState<boolean>(false);
 
-  // Vérifier le rôle admin dans public.users
+  // Vérifier le rôle admin à partir des données utilisateur
   useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!isAuthenticated) {
-        setIsAdmin(false);
-        return;
-      }
-
-      setIsCheckingRole(true);
-      
-      try {
-        const { role } = await apiService.checkAdminRole();
-        const adminStatus = role === 'admin';
-        setIsAdmin(adminStatus);
-      } catch (error) {
-        console.error('❌ Error checking admin role:', error);
-        setIsAdmin(false);
-      } finally {
-        setIsCheckingRole(false);
-      }
-    };
-
-    checkAdminRole();
-  }, [isAuthenticated]);
+    if (!isLoading && isAuthenticated && user) {
+      const adminStatus = user.role === 'admin';
+      setIsAdmin(adminStatus);
+    } else if (!isLoading && !isAuthenticated) {
+      setIsAdmin(false);
+    }
+  }, [isAuthenticated, isLoading, user]);
   
   return {
     isAdmin,
     isAuthenticated,
-    isLoading: isCheckingRole,
+    isLoading,
     user
   };
 } 

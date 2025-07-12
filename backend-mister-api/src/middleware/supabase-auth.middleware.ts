@@ -10,13 +10,6 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
-      // Ne traiter que les routes qui nécessitent une authentification
-      // Exclure les routes d'authentification et les routes publiques
-      if (this.shouldSkipAuthentication(req.path)) {
-        this.logger.debug(`⏭️ Skipping authentication for: ${req.method} ${req.path}`);
-        return next();
-      }
-
       // Récupération du token depuis les cookies HTTPS
       const token = req.cookies['access_token'] || req.cookies['sb-access-token'];
       
@@ -86,44 +79,5 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
       
       next();
     }
-  }
-
-  /**
-   * Détermine si l'authentification doit être ignorée pour cette route
-   */
-  private shouldSkipAuthentication(path: string): boolean {
-    const skipPaths = [
-      '/auth/login',
-      '/auth/register',
-      '/auth/logout',
-      '/auth/reset-password',
-      '/auth/resend-confirmation',
-      '/auth/configure-brevo',
-      '/auth/diagnose-brevo',
-      '/auth/test-email',
-      '/auth/generate-dns-records',
-      '/auth/user-status',
-      '/api/v1/punchlines',
-      '/api/v1/pays',
-      '/api/v1/animaux',
-      '/api/v1/stats',
-      '/webhook',
-      '/newsletter/subscribe',
-      '/newsletter/confirm',
-      '/newsletter/unsubscribe',
-      '/payments/prices',
-      '/',
-      '/docs',
-      '/api/v1', // Documentation Swagger
-    ];
-
-    // Vérifier si le chemin commence par un des chemins à ignorer
-    return skipPaths.some(skipPath => {
-      if (skipPath.endsWith('/*')) {
-        const basePath = skipPath.slice(0, -2);
-        return path.startsWith(basePath);
-      }
-      return path.startsWith(skipPath);
-    });
   }
 } 

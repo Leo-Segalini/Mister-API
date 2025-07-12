@@ -100,10 +100,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // console.log('🔑 Token found in localStorage, validating with server...');
       }
       
-      // Essayer de récupérer le profil utilisateur
+      // Essayer de récupérer le profil utilisateur complet (incluant le rôle)
       const userData = await apiService.getProfile();
       // console.log('✅ Session valid, user data:', userData);
-      setUser(userData);
+      
+      // S'assurer que le rôle est présent
+      const completeUserData = {
+        ...userData,
+        role: userData.role || 'user'
+      };
+      
+      setUser(completeUserData);
       return true;
     } catch (error: any) {
       console.error('❌ Session validation failed:', error);
@@ -269,11 +276,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const profileData = await apiService.getProfile();
           // console.log('✅ Complete profile data:', profileData);
-          setUser(profileData);
+          
+          // Fusionner les données d'authentification avec le profil complet
+          const completeUserData = {
+            ...response.data.user,
+            ...profileData,
+            // S'assurer que le rôle est bien présent
+            role: profileData.role || response.data.user.role || 'user'
+          };
+          
+          // console.log('👤 Complete user data with role:', completeUserData);
+          setUser(completeUserData);
         } catch (profileError) {
           console.warn('⚠️ Could not fetch complete profile, using auth data:', profileError);
-          // En cas d'erreur, utiliser les données de auth.users
-          setUser(response.data.user);
+          // En cas d'erreur, utiliser les données de auth.users avec rôle par défaut
+          const fallbackUserData = {
+            ...response.data.user,
+            role: response.data.user.role || 'user'
+          };
+          setUser(fallbackUserData);
         }
         
         // console.log('👤 User state updated with complete profile');
