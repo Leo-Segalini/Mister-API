@@ -215,28 +215,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (isValid && isMounted) {
             console.log('✅ Valid session found, user authenticated');
           } else if (!isValid && isMounted) {
-            console.log('📭 Invalid session, redirecting to login');
-            // Rediriger vers la page de connexion si on est sur une page protégée
-            if (typeof window !== 'undefined') {
-              const currentPath = window.location.pathname;
-              const protectedPaths = ['/dashboard', '/payment'];
-              if (protectedPaths.some(path => currentPath.startsWith(path))) {
-                console.log('🔄 Redirecting to login page');
-                router.push('/login');
-              }
-            }
+            console.log('📭 Invalid session, but not redirecting automatically');
+            // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
           }
         } else {
-          console.log('📭 No cookies found, redirecting to login');
-          // Pas de cookies, rediriger vers la page de connexion si on est sur une page protégée
-          if (typeof window !== 'undefined') {
-            const currentPath = window.location.pathname;
-            const protectedPaths = ['/dashboard', '/payment'];
-            if (protectedPaths.some(path => currentPath.startsWith(path))) {
-              console.log('🔄 Redirecting to login page');
-              router.push('/login');
-            }
-          }
+          console.log('📭 No cookies found, but not redirecting automatically');
+          // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
         }
       } catch (error) {
         console.error('💥 Auth initialization error:', error);
