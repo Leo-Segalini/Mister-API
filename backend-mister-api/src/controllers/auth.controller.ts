@@ -290,7 +290,7 @@ export class AuthController {
         throw new UnauthorizedException('Utilisateur non authentifié');
       }
 
-      this.logger.log(`👤 Récupération du profil pour: ${req.user?.email} (ID: ${req.user?.id})`);
+      this.logger.log(`👤 Récupération du profil pour: ${req.user?.email}`);
       
       const user = await this.supabaseService.getUserProfile(req.user.id);
       
@@ -306,7 +306,7 @@ export class AuthController {
   }
 
   @Get('check-admin-role')
-  @UseGuards(SupabaseAuthGuard)
+  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Vérifier le rôle admin',
