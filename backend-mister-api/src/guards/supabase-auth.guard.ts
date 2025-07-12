@@ -8,7 +8,7 @@ export class SupabaseAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token = this.extractTokenFromHeader(request);
+    const token = this.extractTokenFromRequest(request);
 
     if (!token) {
       throw new UnauthorizedException('Token d\'authentification manquant');
@@ -52,7 +52,17 @@ export class SupabaseAuthGuard implements CanActivate {
     }
   }
 
-  private extractTokenFromHeader(request: AuthenticatedRequest): string | undefined {
+  private extractTokenFromRequest(request: AuthenticatedRequest): string | undefined {
+    // Essayer d'abord les cookies
+    const cookies = request.cookies;
+    if (cookies) {
+      const tokenFromCookie = cookies.access_token || cookies['sb-access-token'];
+      if (tokenFromCookie) {
+        return tokenFromCookie;
+      }
+    }
+
+    // Fallback sur les headers Authorization
     const authHeader = request.headers?.authorization;
     if (!authHeader) return undefined;
     

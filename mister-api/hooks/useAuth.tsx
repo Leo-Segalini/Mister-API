@@ -88,21 +88,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fonction de validation de session
   const validateSession = useCallback(async (): Promise<boolean> => {
     try {
-      // console.log('🔍 Validating session...');
+      console.log('🔍 Validating session...');
       
-      // Vérifier d'abord s'il y a un token dans le localStorage
+      // Vérifier d'abord s'il y a des cookies de session
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-          // console.log('🔑 No token found in localStorage');
+        const hasCookies = document.cookie.includes('access_token') || document.cookie.includes('sb-access-token');
+        if (!hasCookies) {
+          console.log('🍪 No session cookies found');
           return false;
         }
-        // console.log('🔑 Token found in localStorage, validating with server...');
+        console.log('🍪 Session cookies found, validating with server...');
       }
       
       // Essayer de récupérer le profil utilisateur complet (incluant le rôle)
       const userData = await apiService.getProfile();
-      // console.log('✅ Session valid, user data:', userData);
+      console.log('✅ Session valid, user data:', userData);
       
       // S'assurer que le rôle est présent
       const completeUserData = {
@@ -117,10 +117,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Si c'est une erreur 401 (non autorisé), la session est invalide
       if (error.message && error.message.includes('401')) {
-        // console.log('🔒 Session expired (401) - clearing localStorage');
-        // Nettoyer le localStorage en cas de session expirée
+        console.log('🔒 Session expired (401) - clearing cookies');
+        // Nettoyer les cookies en cas de session expirée
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('access_token');
+          // Supprimer les cookies de session
+          document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = 'sb-access-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
         return false;
       }
@@ -131,12 +133,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error.message.includes('Erreur de connexion au serveur') ||
         error.message.includes('fetch')
       )) {
-        // console.log('🌐 Network error, keeping current session state');
+        console.log('🌐 Network error, keeping current session state');
         return false;
       }
       
       // Pour les autres erreurs, considérer comme invalide
-      // console.log('❌ Other error, session invalid');
+      console.log('❌ Other error, session invalid');
       return false;
     }
   }, []);
@@ -147,14 +149,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        // console.log('🔐 Initializing authentication...');
+        console.log('🔐 Initializing authentication...');
         
-        // Vérifier d'abord s'il y a un token dans le localStorage
-        let hasToken = false;
+        // Vérifier d'abord s'il y a des cookies de session
+        let hasCookies = false;
         if (typeof window !== 'undefined') {
-          const token = localStorage.getItem('access_token');
-          hasToken = !!token;
-          // console.log(`🔑 Token in localStorage: ${hasToken ? 'Found' : 'Not found'}`);
+          hasCookies = document.cookie.includes('access_token') || document.cookie.includes('sb-access-token');
+          console.log(`🍪 Session cookies: ${hasCookies ? 'Found' : 'Not found'}`);
         }
         
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
@@ -166,40 +167,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const isPublicPage = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
           
           if (isPublicPage) {
-            // console.log('🌐 Public page detected, skipping auth check');
+            console.log('🌐 Public page detected, skipping auth check');
             setIsLoading(false);
             setIsInitialized(true);
             return;
           }
         }
         
-        // Si on a un token, essayer de valider la session
-        if (hasToken) {
-          // console.log('🔍 Token found, validating session...');
+        // Si on a des cookies, essayer de valider la session
+        if (hasCookies) {
+          console.log('🔍 Cookies found, validating session...');
           const isValid = await validateSession();
           
           if (isValid && isMounted) {
-            // console.log('✅ Valid session found, user authenticated');
+            console.log('✅ Valid session found, user authenticated');
           } else if (!isValid && isMounted) {
-            // console.log('📭 Invalid session, redirecting to login');
+            console.log('📭 Invalid session, redirecting to login');
             // Rediriger vers la page de connexion si on est sur une page protégée
             if (typeof window !== 'undefined') {
               const currentPath = window.location.pathname;
               const protectedPaths = ['/dashboard', '/payment'];
               if (protectedPaths.some(path => currentPath.startsWith(path))) {
-                // console.log('🔄 Redirecting to login page');
+                console.log('🔄 Redirecting to login page');
                 router.push('/login');
               }
             }
           }
         } else {
-          // console.log('📭 No token found, redirecting to login');
-          // Pas de token, rediriger vers la page de connexion si on est sur une page protégée
+          console.log('📭 No cookies found, redirecting to login');
+          // Pas de cookies, rediriger vers la page de connexion si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
             const protectedPaths = ['/dashboard', '/payment'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
-              // console.log('🔄 Redirecting to login page');
+              console.log('🔄 Redirecting to login page');
               router.push('/login');
             }
           }
@@ -220,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMounted) {
           setIsLoading(false);
           setIsInitialized(true);
-          // console.log('🏁 Auth initialization complete');
+          console.log('🏁 Auth initialization complete');
         }
       }
     };

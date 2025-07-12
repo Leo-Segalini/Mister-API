@@ -63,13 +63,6 @@ class ApiService {
       retryCount
     });
     
-    // Récupérer le token depuis localStorage si disponible
-    let accessToken = null;
-    if (typeof window !== 'undefined') {
-      accessToken = localStorage.getItem('access_token');
-      // console.log('🔑 Token depuis localStorage:', accessToken ? 'Trouvé' : 'Non trouvé');
-    }
-    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     };
@@ -83,31 +76,25 @@ class ApiService {
       });
     }
     
-    // Ajouter le token dans le header Authorization si disponible
-    if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
-      // console.log('🔑 Token ajouté dans Authorization header');
-    }
-    
     const config: RequestInit = {
       headers,
       credentials: 'include', // Important pour les cookies
       ...options,
     };
 
-    // console.log(`🌐 Making API request to: ${url}`, {
-    //   method: config.method || 'GET',
-    //   headers: config.headers,
-    //   body: config.body ? 'present' : 'none',
-    //   retryCount,
-    //   credentials: config.credentials,
-    //   cookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
-    // });
+    console.log(`🌐 Making API request to: ${url}`, {
+      method: config.method || 'GET',
+      headers: config.headers,
+      body: config.body ? 'present' : 'none',
+      retryCount,
+      credentials: config.credentials,
+      cookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
+    });
 
     try {
       const response = await fetch(url, config);
-      // console.log(`📡 Response status: ${response.status} for ${url}`);
-      // console.log(`📡 Response headers:`, Object.fromEntries(response.headers.entries()));
+      console.log(`📡 Response status: ${response.status} for ${url}`);
+      console.log(`📡 Response headers:`, Object.fromEntries(response.headers.entries()));
       
       // Vérifier si la réponse contient du JSON
       const contentType = response.headers.get('content-type');
@@ -115,20 +102,20 @@ class ApiService {
       
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
-        // console.log(`📦 Response data for ${url}:`, data);
+        console.log(`📦 Response data for ${url}:`, data);
       } else {
         // Si ce n'est pas du JSON, lire comme texte
         const textData = await response.text();
-        // console.log(`📦 Response text for ${url}:`, textData);
+        console.log(`📦 Response text for ${url}:`, textData);
         data = { message: textData || 'Réponse non-JSON du serveur' };
       }
 
       if (!response.ok) {
-        // console.error(`❌ API Error for ${url}:`, {
-        //   status: response.status,
-        //   statusText: response.statusText,
-        //   data
-        // });
+        console.error(`❌ API Error for ${url}:`, {
+          status: response.status,
+          statusText: response.statusText,
+          data
+        });
         
         // Gestion spécifique des erreurs
         if (response.status === 401) {
@@ -248,7 +235,7 @@ class ApiService {
    * Connexion utilisateur
    */
   async signin(credentials: AuthCredentials): Promise<AuthResponse> {
-    // console.log('🔐 Signin attempt with credentials:', { email: credentials.email });
+    console.log('🔐 Signin attempt with credentials:', { email: credentials.email });
     
     try {
       const response = await this.request<AuthResponse>('/api/v1/auth/login', {
@@ -256,13 +243,9 @@ class ApiService {
         body: JSON.stringify(credentials),
       });
       
-      this.setSessionCookies(response as any);
-      
-      // Stocker le token dans localStorage pour l'accès cross-origin
-      if (typeof window !== 'undefined' && response.data?.session?.access_token) {
-        localStorage.setItem('access_token', response.data.session.access_token);
-        // console.log('🔐 Token stocké dans localStorage');
-      }
+      // Les cookies sont automatiquement gérés par le navigateur
+      // grâce à credentials: 'include' dans la requête
+      console.log('🍪 Session cookies set automatically by browser');
       
       return response;
     } catch (error: any) {
