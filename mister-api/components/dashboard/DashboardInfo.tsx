@@ -89,6 +89,18 @@ export default function DashboardInfo({ user, isAdmin }: DashboardInfoProps) {
       setApiKeys(safeApiKeysData);
       // console.log('📊 [DASHBOARD] État apiKeys mis à jour avec:', safeApiKeysData.length, 'clés');
 
+      // Charger les statistiques de quota pour l'utilisateur
+      try {
+        // console.log('📊 [DASHBOARD] Chargement des statistiques de quota...');
+        const quotaData = await apiService.getUsageStats();
+        // console.log('📊 [DASHBOARD] Statistiques de quota récupérées:', quotaData);
+        setQuotaInfo(quotaData);
+      } catch (quotaError) {
+        console.error('📊 [DASHBOARD] Erreur lors du chargement des statistiques de quota:', quotaError);
+        // Ne pas afficher d'erreur car c'est optionnel
+        setQuotaInfo(null);
+      }
+
       // Charger les autres données seulement si on a des clés API
       if (safeApiKeysData.length > 0) {
         // console.log('📊 [DASHBOARD] Chargement des données supplémentaires car clés API trouvées');
