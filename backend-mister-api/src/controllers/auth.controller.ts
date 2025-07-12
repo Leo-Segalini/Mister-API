@@ -88,6 +88,7 @@ export class AuthController {
           sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
           maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
+          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined, // Domaine pour cross-origin
         };
 
         res.cookie('access_token', session.access_token, cookieOptions);
@@ -190,7 +191,7 @@ export class AuthController {
           sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
           maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
-          // Pas de domaine spécifique pour permettre le cross-origin
+          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined, // Domaine pour cross-origin
         };
 
         res.cookie('access_token', session.access_token, cookieOptions);

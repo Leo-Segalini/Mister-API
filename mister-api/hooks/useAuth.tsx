@@ -86,20 +86,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Fonction pour extraire les cookies de session
+  const getSessionCookies = useCallback(() => {
+    if (typeof window === 'undefined') return null;
+    
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {} as Record<string, string>);
+    
+    return {
+      accessToken: cookies['access_token'] || cookies['sb-access-token'],
+      hasCookies: !!(cookies['access_token'] || cookies['sb-access-token'])
+    };
+  }, []);
+
   // Fonction de validation de session
   const validateSession = useCallback(async (): Promise<boolean> => {
     try {
       console.log('🔍 Validating session...');
       
       // Vérifier d'abord s'il y a des cookies de session
-      if (typeof window !== 'undefined') {
-        const hasCookies = document.cookie.includes('access_token') || document.cookie.includes('sb-access-token');
-        if (!hasCookies) {
-          console.log('🍪 No session cookies found');
-          return false;
-        }
-        console.log('🍪 Session cookies found, validating with server...');
+      const sessionCookies = getSessionCookies();
+      if (!sessionCookies || !sessionCookies.hasCookies) {
+        console.log('🍪 No session cookies found');
+        return false;
       }
+      
+      console.log('🍪 Session cookies found:', {
+        hasAccessToken: !!sessionCookies.accessToken,
+        cookieLength: sessionCookies.accessToken?.length || 0
+      });
       
       // Essayer de récupérer le profil utilisateur complet (incluant le rôle)
       const userData = await apiService.getProfile();
@@ -121,9 +139,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('🔒 Session expired (401) - clearing cookies');
         // Nettoyer les cookies en cas de session expirée
         if (typeof window !== 'undefined') {
-          // Supprimer les cookies de session
-          document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          document.cookie = 'sb-access-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          // Supprimer les cookies de session avec tous les domaines possibles
+          const domains = ['', '.vercel.app', '.mister-api.vercel.app'];
+          const paths = ['/', ''];
+          
+          domains.forEach(domain => {
+            paths.forEach(path => {
+              document.cookie = `access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
+              document.cookie = `sb-access-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`;
+            });
+          });
         }
         return false;
       }
@@ -142,7 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('❌ Other error, session invalid');
       return false;
     }
-  }, []);
+  }, [getSessionCookies]);
 
   // Vérification automatique de l'authentification au démarrage
   useEffect(() => {
@@ -161,7 +186,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Vérifier d'abord s'il y a des cookies de session
         let hasCookies = false;
         if (typeof window !== 'undefined') {
-          hasCookies = document.cookie.includes('access_token') || document.cookie.includes('sb-access-token');
+          const sessionCookies = getSessionCookies();
+          hasCookies = sessionCookies?.hasCookies || false;
           console.log(`🍪 Session cookies: ${hasCookies ? 'Found' : 'Not found'}`);
         }
         
