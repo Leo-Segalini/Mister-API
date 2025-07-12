@@ -133,7 +133,10 @@ export class SupabaseService {
           ville: userData.ville,
           pays: userData.pays,
           telephone: userData.telephone,
-          role: userData.role || 'user'
+          role: userData.role || 'user',
+          // Ajouter les champs légaux
+          politique_confidentialite_acceptee: userData.politique_confidentialite_acceptee || false,
+          conditions_generales_acceptees: userData.conditions_generales_acceptees || false
         })
         .select()
         .single();
@@ -143,6 +146,7 @@ export class SupabaseService {
         throw error;
       }
 
+      this.logger.log(`✅ Profil créé avec succès pour ${userData.email} avec les champs légaux`);
       return data;
     } catch (error) {
       this.logger.error('Erreur lors de la création du profil:', error);
@@ -254,9 +258,10 @@ export class SupabaseService {
         throw error;
       }
 
-      // Le profil utilisateur sera créé automatiquement par la fonction trigger handle_new_user
-      // qui extrait les données de raw_user_meta_data et les insère dans public.users
-      // Les champs légaux seront maintenant inclus dans les métadonnées et transmis au trigger
+      // Le profil utilisateur sera créé automatiquement par le trigger SQL
+      // Pas besoin de création manuelle ici
+      this.logger.log(`✅ Inscription réussie pour: ${data.user?.email}`);
+      this.logger.log(`🔄 Le profil utilisateur sera créé automatiquement par le trigger SQL`);
 
       return {
         user: data.user,

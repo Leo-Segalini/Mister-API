@@ -18,11 +18,11 @@ export function useAdmin(redirectTo = '/dashboard') {
   // Vérifier le rôle admin dans public.users
   useEffect(() => {
     const checkAdminRole = async () => {
-      // Attendre que l'authentification soit chargée
+    // Attendre que l'authentification soit chargée
       if (isLoading || !isAuthenticated) {
         setIsAdmin(false);
-        return;
-      }
+      return;
+    }
 
       setIsCheckingRole(true);
       
@@ -33,8 +33,8 @@ export function useAdmin(redirectTo = '/dashboard') {
         // console.log('🔍 Admin role check result:', { role });
         const adminStatus = role === 'admin';
         setIsAdmin(adminStatus);
-        
-        // Si l'utilisateur n'est pas admin, rediriger
+
+    // Si l'utilisateur n'est pas admin, rediriger
         if (!adminStatus) {
           // console.log('🚫 Access denied: User is not admin in public.users');
           router.push(redirectTo);
@@ -43,7 +43,7 @@ export function useAdmin(redirectTo = '/dashboard') {
         console.error('❌ Error checking admin role:', error);
         setIsAdmin(false);
         // En cas d'erreur, rediriger par sécurité
-        router.push(redirectTo);
+      router.push(redirectTo);
       } finally {
         setIsCheckingRole(false);
       }
@@ -101,7 +101,7 @@ export function useAdminCheck() {
 
     checkAdminRole();
   }, [isAuthenticated]);
-
+  
   return {
     isAdmin,
     isAuthenticated,
