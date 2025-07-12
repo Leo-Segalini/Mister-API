@@ -15,6 +15,11 @@ const adminRoutes = [
   '/admin'
 ];
 
+// Configuration des routes de connexion admin
+const adminLoginRoutes = [
+  '/gestion-administrateur-login'
+];
+
 // Configuration des routes publiques
 const publicRoutes = [
   '/',
@@ -23,7 +28,8 @@ const publicRoutes = [
   '/pricing',
   '/docs',
   '/apis',
-  '/contact'
+  '/contact',
+  '/admin-login'
 ];
 
 export function middleware(request: NextRequest) {

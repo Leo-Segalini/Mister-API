@@ -18,9 +18,9 @@ export function useAdmin(redirectTo = '/dashboard') {
     // Attendre que l'authentification soit chargée
     if (isLoading) return;
 
-    // Si l'utilisateur n'est pas connecté, rediriger vers la connexion
+    // Si l'utilisateur n'est pas connecté, rediriger vers la connexion admin
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push('/gestion-administrateur-login');
       return;
     }
 

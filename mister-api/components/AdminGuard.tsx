@@ -44,10 +44,10 @@ export function AdminGuard({
             Vous devez être connecté pour accéder à cette page.
           </p>
           <a
-            href="/login"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            href="/gestion-administrateur-login"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
           >
-            Se connecter
+            Connexion Admin
           </a>
         </div>
       </div>
