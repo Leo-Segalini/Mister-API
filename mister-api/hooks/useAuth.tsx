@@ -44,6 +44,7 @@ const clearAllSessionData = () => {
 
   // Nettoyer aussi le localStorage et sessionStorage
   if (typeof localStorage !== 'undefined') {
+    localStorage.removeItem('access_token');
     localStorage.removeItem('supabase.auth.token');
     localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
     // console.log('🧹 LocalStorage cleared');
@@ -86,8 +87,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Fonction pour extraire les cookies de session
-  const getSessionCookies = useCallback(() => {
+  // Fonction pour extraire les tokens de session (cookies + localStorage)
+  const getSessionTokens = useCallback(() => {
     if (typeof window === 'undefined') return null;
     
     const cookies = document.cookie.split(';').reduce((acc, cookie) => {
@@ -96,9 +97,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return acc;
     }, {} as Record<string, string>);
     
+    // Récupérer l'access token depuis les cookies ou le localStorage
+    const cookieToken = cookies['access_token'] || cookies['sb-access-token'];
+    const localStorageToken = localStorage.getItem('access_token');
+    const accessToken = cookieToken || localStorageToken;
+    
     return {
-      accessToken: cookies['access_token'] || cookies['sb-access-token'],
-      hasCookies: !!(cookies['access_token'] || cookies['sb-access-token'])
+      accessToken,
+      hasCookies: !!cookieToken,
+      hasLocalStorage: !!localStorageToken,
+      hasTokens: !!(accessToken)
     };
   }, []);
 
@@ -107,16 +115,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔍 Validating session...');
       
-      // Vérifier d'abord s'il y a des cookies de session
-      const sessionCookies = getSessionCookies();
-      if (!sessionCookies || !sessionCookies.hasCookies) {
-        console.log('🍪 No session cookies found');
+      // Vérifier d'abord s'il y a des tokens de session
+      const sessionTokens = getSessionTokens();
+      if (!sessionTokens || !sessionTokens.hasTokens) {
+        console.log('🔑 No session tokens found');
         return false;
       }
       
-      console.log('🍪 Session cookies found:', {
-        hasAccessToken: !!sessionCookies.accessToken,
-        cookieLength: sessionCookies.accessToken?.length || 0
+      console.log('🔑 Session tokens found:', {
+        hasAccessToken: !!sessionTokens.accessToken,
+        tokenLength: sessionTokens.accessToken?.length || 0,
+        hasCookies: sessionTokens.hasCookies,
+        hasLocalStorage: sessionTokens.hasLocalStorage
       });
       
       // Validation de session simplifiée (profil mis en commentaire)
@@ -180,7 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('❌ Other error, session invalid');
       return false;
     }
-  }, [getSessionCookies]);
+  }, [getSessionTokens]);
 
   // Vérification automatique de l'authentification au démarrage
   useEffect(() => {
@@ -196,12 +206,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        // Vérifier d'abord s'il y a des cookies de session
-        let hasCookies = false;
+        // Vérifier d'abord s'il y a des tokens de session
+        let hasTokens = false;
         if (typeof window !== 'undefined') {
-          const sessionCookies = getSessionCookies();
-          hasCookies = sessionCookies?.hasCookies || false;
-          console.log(`🍪 Session cookies: ${hasCookies ? 'Found' : 'Not found'}`);
+          const sessionTokens = getSessionTokens();
+          hasTokens = sessionTokens?.hasTokens || false;
+          console.log(`🔑 Session tokens: ${hasTokens ? 'Found' : 'Not found'}`);
         }
         
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
@@ -220,9 +230,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
-        // Si on a des cookies, essayer de valider la session
-        if (hasCookies) {
-          console.log('🔍 Cookies found, validating session...');
+        // Si on a des tokens, essayer de valider la session
+        if (hasTokens) {
+          console.log('🔍 Tokens found, validating session...');
           const isValid = await validateSession();
           
           if (isValid && isMounted) {
@@ -232,7 +242,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
           }
         } else {
-          console.log('📭 No cookies found, but not redirecting automatically');
+          console.log('📭 No tokens found, but not redirecting automatically');
           // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
         }
       } catch (error) {

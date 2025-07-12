@@ -168,12 +168,12 @@ class ApiService {
   }
 
   /**
-   * Méthode pour supprimer les cookies de session
+   * Méthode pour supprimer les cookies de session et nettoyer le localStorage
    */
   private clearSessionCookies(): void {
     if (typeof window === 'undefined') return;
 
-    // console.log('🧹 Clearing all session cookies...');
+    // console.log('🧹 Clearing all session cookies and localStorage...');
     
     // Liste de tous les cookies d'authentification à supprimer
     const cookiesToClear = [
@@ -193,6 +193,12 @@ class ApiService {
       // Supprimer sans path spécifique
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC;`;
     });
+
+    // Nettoyer aussi le localStorage
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
+    console.log('💾 LocalStorage cleared');
 
     // Vérifier que les cookies ont été supprimés
     const remainingCookies = document.cookie;
@@ -246,6 +252,12 @@ class ApiService {
       // Les cookies sont automatiquement gérés par le navigateur
       // grâce à credentials: 'include' dans la requête
       console.log('🍪 Session cookies set automatically by browser');
+      
+      // Stocker l'access token dans le localStorage pour une meilleure persistance
+      if (typeof window !== 'undefined' && response.data?.session?.access_token) {
+        localStorage.setItem('access_token', response.data.session.access_token);
+        console.log('💾 Access token stored in localStorage');
+      }
       
       return response;
     } catch (error: any) {
