@@ -52,34 +52,50 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       // Autoriser les requêtes sans origin (comme les appels API directs)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        console.log('🌐 CORS: Requête sans origin autorisée');
+        return callback(null, true);
+      }
+      
+      console.log(`🌐 CORS: Vérification de l'origine: ${origin}`);
       
       // Vérifier si l'origine est dans la liste autorisée
       const isAllowed = corsOrigins.some(allowedOrigin => {
         if (allowedOrigin.includes('*')) {
           // Gestion des wildcards
           const pattern = allowedOrigin.replace('*', '.*');
-          return new RegExp(pattern).test(origin);
+          const regex = new RegExp(pattern);
+          const matches = regex.test(origin);
+          console.log(`🌐 CORS: Pattern ${pattern} pour ${origin}: ${matches}`);
+          return matches;
         }
-        return allowedOrigin === origin;
+        const matches = allowedOrigin === origin;
+        console.log(`🌐 CORS: Exact match ${allowedOrigin} === ${origin}: ${matches}`);
+        return matches;
       });
       
       if (isAllowed) {
+        console.log(`✅ CORS: Origine ${origin} autorisée`);
         callback(null, true);
       } else {
-        // console.log(`🚫 CORS bloqué pour l'origine: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        console.log(`🚫 CORS: Origine ${origin} bloquée`);
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
       }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'Cookie'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'Cookie', 'Origin', 'Accept'],
     exposedHeaders: ['Set-Cookie'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
 
   // Helmet pour la sécurité
   if (configService.get('HELMET_ENABLED', 'true') === 'true') {
-    app.use(helmet());
+    app.use(helmet({
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      crossOriginEmbedderPolicy: false,
+    }));
   }
 
   // Swagger uniquement en développement
