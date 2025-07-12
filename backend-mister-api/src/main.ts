@@ -59,14 +59,17 @@ async function bootstrap() {
       
       // Autoriser les origines spécifiques
       if (allowedOrigins.includes(origin)) {
+        console.log(`✅ CORS: Origine autorisée: ${origin}`);
         return callback(null, true);
       }
       
       // Pour le développement, autoriser toutes les origines localhost
       if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+        console.log(`✅ CORS: Origine localhost autorisée: ${origin}`);
         return callback(null, true);
       }
       
+      console.log(`❌ CORS: Origine refusée: ${origin}`);
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true, // Essentiel pour les cookies
@@ -89,16 +92,23 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
   
-  // Middleware CORS supplémentaire pour les requêtes OPTIONS
+  // Middleware CORS supplémentaire pour gérer les requêtes OPTIONS
   app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    const origin = req.headers.origin;
+    
+    // Vérifier si l'origine est autorisée
+    if (origin && allowedOrigins.includes(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
+    
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key, Cookie');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key, Cookie, X-Refresh-Token');
     
+    // Gérer les requêtes OPTIONS (preflight)
     if (req.method === 'OPTIONS') {
-      console.log('🔧 OPTIONS request handled');
-      res.sendStatus(204);
+      console.log('🔧 OPTIONS preflight request handled for:', req.url);
+      res.status(204).end();
       return;
     }
     

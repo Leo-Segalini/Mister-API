@@ -408,6 +408,27 @@ export class AuthController {
     status: 401,
     description: 'Non authentifié'
   })
+  @Get('me')
+  @ApiOperation({
+    summary: 'Récupérer les informations de l\'utilisateur connecté',
+    description: 'Récupère les informations de l\'utilisateur actuellement authentifié'
+  })
+  @SwaggerApiResponse({
+    status: 200,
+    description: 'Informations utilisateur récupérées',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Informations utilisateur récupérées avec succès' },
+        data: { type: 'object' }
+      }
+    }
+  })
+  @SwaggerApiResponse({
+    status: 401,
+    description: 'Non authentifié'
+  })
   async getMe(@Req() req: AuthenticatedRequest): Promise<ApiResponse<any>> {
     try {
       return {
