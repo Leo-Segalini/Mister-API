@@ -67,6 +67,8 @@ BEGIN
         role,
         politique_confidentialite_acceptee,
         conditions_generales_acceptees,
+        date_acceptation_conditions,
+        date_acceptation_politique,
         created_at,
         updated_at
     ) VALUES (
@@ -88,6 +90,16 @@ BEGIN
         user_role,
         politique_accepted,
         conditions_accepted,
+        -- Date d'acceptation des conditions (timestamp actuel si acceptées)
+        CASE 
+            WHEN conditions_accepted THEN NOW()
+            ELSE NULL
+        END,
+        -- Date d'acceptation de la politique (timestamp actuel si acceptée)
+        CASE 
+            WHEN politique_accepted THEN NOW()
+            ELSE NULL
+        END,
         NOW(),
         NOW()
     );
@@ -97,6 +109,9 @@ BEGIN
         user_role, 
         politique_accepted, 
         conditions_accepted;
+    RAISE NOTICE '📅 Dates d''acceptation: Conditions=%s, Politique=%s', 
+        CASE WHEN conditions_accepted THEN NOW()::TEXT ELSE 'Non acceptées' END,
+        CASE WHEN politique_accepted THEN NOW()::TEXT ELSE 'Non acceptée' END;
 
     RETURN NEW;
     
@@ -136,6 +151,8 @@ RETURNS TABLE(
 DECLARE
     auth_user RECORD;
     profile_exists BOOLEAN;
+    politique_accepted BOOLEAN;
+    conditions_accepted BOOLEAN;
 BEGIN
     -- Parcourir tous les utilisateurs auth.users
     FOR auth_user IN 
@@ -151,6 +168,17 @@ BEGIN
         -- Si le profil n'existe pas, le créer
         IF NOT profile_exists THEN
             BEGIN
+                -- Extraire et convertir les champs légaux
+                politique_accepted := CASE 
+                    WHEN auth_user.raw_user_meta_data->>'politique_confidentialite_acceptee' = 'true' THEN true
+                    ELSE false
+                END;
+                
+                conditions_accepted := CASE 
+                    WHEN auth_user.raw_user_meta_data->>'conditions_generales_acceptees' = 'true' THEN true
+                    ELSE false
+                END;
+
                 INSERT INTO public.users (
                     id,
                     email,
@@ -165,6 +193,8 @@ BEGIN
                     role,
                     politique_confidentialite_acceptee,
                     conditions_generales_acceptees,
+                    date_acceptation_conditions,
+                    date_acceptation_politique,
                     created_at,
                     updated_at
                 ) VALUES (
@@ -184,13 +214,17 @@ BEGIN
                     COALESCE(auth_user.raw_user_meta_data->>'pays', NULL),
                     COALESCE(auth_user.raw_user_meta_data->>'telephone', NULL),
                     COALESCE(auth_user.raw_user_meta_data->>'role', 'user'),
+                    politique_accepted,
+                    conditions_accepted,
+                    -- Date d'acceptation des conditions (timestamp actuel si acceptées)
                     CASE 
-                        WHEN auth_user.raw_user_meta_data->>'politique_confidentialite_acceptee' = 'true' THEN true
-                        ELSE false
+                        WHEN conditions_accepted THEN NOW()
+                        ELSE NULL
                     END,
+                    -- Date d'acceptation de la politique (timestamp actuel si acceptée)
                     CASE 
-                        WHEN auth_user.raw_user_meta_data->>'conditions_generales_acceptees' = 'true' THEN true
-                        ELSE false
+                        WHEN politique_accepted THEN NOW()
+                        ELSE NULL
                     END,
                     NOW(),
                     NOW()
@@ -247,6 +281,7 @@ BEGIN
   RAISE NOTICE '🎉 Trigger de création automatique du profil utilisateur configuré avec succès!';
   RAISE NOTICE '📝 Les nouveaux utilisateurs auront automatiquement leur profil créé dans public.users';
   RAISE NOTICE '📋 Les champs légaux (politique_confidentialite_acceptee, conditions_generales_acceptees) seront inclus';
+  RAISE NOTICE '📅 Les dates d''acceptation (date_acceptation_conditions, date_acceptation_politique) seront automatiquement remplies';
   RAISE NOTICE '🛡️ Gestion d''erreurs robuste - l''inscription ne sera pas bloquée en cas d''erreur de profil';
   RAISE NOTICE '🔧 Fonction fix_missing_profiles() disponible pour réparer les profils manquants';
 END

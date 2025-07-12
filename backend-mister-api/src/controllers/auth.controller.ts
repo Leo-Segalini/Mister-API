@@ -85,9 +85,10 @@ export class AuthController {
         const cookieOptions = {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
+          sameSite: 'lax' as const, // Changé de 'none' à 'lax' pour plus de compatibilité
           maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
+          domain: undefined, // Laisser undefined pour le domaine actuel
         };
 
         res.cookie('access_token', session.access_token, cookieOptions);
@@ -95,6 +96,15 @@ export class AuthController {
         
         this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
         this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
+        this.logger.log(`🍪 Cookie access_token défini: ${session.access_token ? 'Oui' : 'Non'}`);
+        this.logger.log(`🍪 Cookie options:`, {
+          httpOnly: cookieOptions.httpOnly,
+          secure: cookieOptions.secure,
+          sameSite: cookieOptions.sameSite,
+          path: cookieOptions.path,
+          maxAge: cookieOptions.maxAge,
+        });
+        this.logger.log(`🌐 NODE_ENV: ${process.env.NODE_ENV}`);
       }
 
       return {
@@ -187,10 +197,10 @@ export class AuthController {
         const cookieOptions = {
           httpOnly: true,
           secure: process.env.NODE_ENV === 'production',
-          sameSite: 'none' as const, // Changé à 'none' pour cross-origin en HTTPS
+          sameSite: 'lax' as const, // Changé de 'none' à 'lax' pour plus de compatibilité
           maxAge: customExpiresIn * 1000, // 4 heures en millisecondes
           path: '/',
-          // Pas de domaine spécifique pour permettre le cross-origin
+          domain: undefined, // Laisser undefined pour le domaine actuel
         };
 
         res.cookie('access_token', session.access_token, cookieOptions);
@@ -198,6 +208,7 @@ export class AuthController {
         
         this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
         this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
+        this.logger.log(`🍪 Cookie access_token défini: ${session.access_token ? 'Oui' : 'Non'}`);
         this.logger.log(`🍪 Cookie options:`, {
           httpOnly: cookieOptions.httpOnly,
           secure: cookieOptions.secure,
@@ -205,6 +216,7 @@ export class AuthController {
           path: cookieOptions.path,
           maxAge: cookieOptions.maxAge,
         });
+        this.logger.log(`🌐 NODE_ENV: ${process.env.NODE_ENV}`);
       }
 
       this.logger.log(`✅ Connexion réussie pour: ${user?.email}`);
