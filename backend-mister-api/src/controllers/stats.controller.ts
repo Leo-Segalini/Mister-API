@@ -3,7 +3,6 @@ import {
   Get,
   Query,
   UseGuards,
-  Request,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -139,30 +138,32 @@ export class StatsController {
   @Get('usage')
   @UseGuards(AuthGuard)
   @ApiOperation({
-    summary: 'Statistiques de quota utilisateur',
-    description: 'Récupère les statistiques de quota pour l\'utilisateur connecté (quotas quotidiens et par minute)'
+    summary: 'Statistiques d\'utilisation détaillées',
+    description: 'Récupère les statistiques d\'utilisation détaillées (nécessite une authentification)'
   })
   @ApiBearerAuth()
+  @ApiQuery({ name: 'period', required: false, enum: ['day', 'week', 'month', 'year'], description: 'Période d\'analyse' })
+  @ApiQuery({ name: 'start_date', required: false, type: String, description: 'Date de début (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'end_date', required: false, type: String, description: 'Date de fin (YYYY-MM-DD)' })
   @SwaggerApiResponse({
     status: 200,
-    description: 'Statistiques de quota récupérées avec succès',
+    description: 'Statistiques d\'utilisation récupérées avec succès',
     schema: {
       type: 'object',
       properties: {
         success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'Statistiques de quota récupérées avec succès' },
+        message: { type: 'string', example: 'Statistiques d\'utilisation récupérées avec succès' },
         data: {
           type: 'object',
           properties: {
-            type: { type: 'string', example: 'free' },
-            daily_limit: { type: 'number', example: 1000 },
-            daily_used: { type: 'number', example: 150 },
-            per_minute_limit: { type: 'number', example: 60 },
-            per_minute_used: { type: 'number', example: 5 },
-            daily_remaining: { type: 'number', example: 850 },
-            per_minute_remaining: { type: 'number', example: 55 },
-            reset_time: { type: 'string', example: '2025-01-06T00:00:00.000Z' },
-            last_reset: { type: 'string', example: '2025-01-05T00:00:00.000Z' }
+            period: { type: 'string', example: 'month' },
+            totalRequests: { type: 'number', example: 25000 },
+            uniqueUsers: { type: 'number', example: 150 },
+            averageRequestsPerDay: { type: 'number', example: 833 },
+            peakUsage: { type: 'object' },
+            byEndpoint: { type: 'array', items: { type: 'object' } },
+            byTable: { type: 'array', items: { type: 'object' } },
+            byQuotaType: { type: 'array', items: { type: 'object' } }
           }
         }
       }
@@ -173,25 +174,24 @@ export class StatsController {
     description: 'Non authentifié'
   })
   async getUsageStats(
-    @Request() req: any
+    @Query('period') period: 'day' | 'week' | 'month' | 'year' = 'month',
+    @Query('start_date') startDate?: string,
+    @Query('end_date') endDate?: string,
   ): Promise<ApiResponse<any>> {
     try {
-      // Récupérer l'userId depuis le guard d'authentification
-      const userId = req.user?.id;
-      
-      if (!userId) {
-        throw new Error('Utilisateur non identifié');
-      }
-
-      const quotaStats = await this.apiKeyService.getUserQuotaStats(userId);
+      const usageStats = await this.apiKeyService.getDetailedUsageStats({
+        period,
+        startDate,
+        endDate
+      });
 
       return {
         success: true,
-        message: 'Statistiques de quota récupérées avec succès',
-        data: quotaStats
+        message: 'Statistiques d\'utilisation récupérées avec succès',
+        data: usageStats
       };
     } catch (error) {
-      throw new Error('Erreur lors de la récupération des statistiques de quota');
+      throw new Error('Erreur lors de la récupération des statistiques d\'utilisation');
     }
   }
 
