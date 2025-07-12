@@ -53,11 +53,11 @@ export class SupabaseAuthGuard implements CanActivate {
   }
 
   private extractTokenFromRequest(request: AuthenticatedRequest): string | undefined {
-    // Essayer d'abord les cookies
-    const cookies = request.cookies;
-    if (cookies) {
+    // Essayer d'abord les cookies (utiliser any pour contourner le problème TypeScript avec cookie-parser)
+    const cookies = (request as any).cookies;
+    if (cookies && typeof cookies === 'object') {
       const tokenFromCookie = cookies.access_token || cookies['sb-access-token'];
-      if (tokenFromCookie) {
+      if (tokenFromCookie && typeof tokenFromCookie === 'string') {
         return tokenFromCookie;
       }
     }
