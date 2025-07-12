@@ -290,17 +290,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('💾 Tokens stored in localStorage');
         }
         
-        // Utiliser directement les données d'authentification (profil mis en commentaire)
-        console.log('📋 Using auth data directly (profile fetch commented out)...');
-        
-        // Utiliser les données de auth.users avec rôle par défaut
-        const userData = {
-          ...response.data.user,
-          role: response.data.user.role || 'user'
-        };
-        
-        console.log('👤 User data from auth:', userData);
-        setUser(userData);
+        // Récupérer les données complètes du profil depuis public.users
+        console.log('📋 Fetching complete user profile...');
+        try {
+          const profileData = await apiService.getProfile();
+          console.log('✅ Complete profile data:', profileData);
+          
+          // Fusionner les données d'authentification avec le profil complet
+          const completeUserData = {
+            ...response.data.user,
+            ...profileData,
+            // S'assurer que le rôle est bien présent
+            role: profileData.role || response.data.user.role || 'user'
+          };
+          
+          console.log('👤 Complete user data with role:', completeUserData);
+          setUser(completeUserData);
+        } catch (profileError) {
+          console.warn('⚠️ Could not fetch complete profile, using auth data:', profileError);
+          // En cas d'erreur, utiliser les données de auth.users avec rôle par défaut
+          const fallbackUserData = {
+            ...response.data.user,
+            role: response.data.user.role || 'user'
+          };
+          console.log('👤 Using fallback user data:', fallbackUserData);
+          setUser(fallbackUserData);
+        }
         
         console.log('👤 User state updated with complete profile');
         // Rediriger vers le dashboard après connexion réussie
