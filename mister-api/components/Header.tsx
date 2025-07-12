@@ -341,27 +341,54 @@ export default function Header() {
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-2 px-4">
+                      {/* Navigation utilisateur mobile */}
+                      <div className="space-y-2 px-4">
+                        <button
+                          onClick={() => {
+                            router.push('/dashboard');
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-3 p-3 text-gray-300 hover:text-green-400 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+                        >
+                          <BarChart3 className="h-4 w-4" />
+                          <span className="text-sm font-medium">Dashboard</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            router.push('/profile');
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-3 p-3 text-gray-300 hover:text-green-400 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+                        >
+                          <User className="h-4 w-4" />
+                          <span className="text-sm font-medium">Profil</span>
+                        </button>
+                        
                         <button
                           onClick={() => {
                             router.push('/settings');
                             setIsMobileMenuOpen(false);
                           }}
-                          className="flex-1 flex items-center justify-center space-x-2 p-3 text-gray-400 hover:text-green-400 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+                          className="w-full flex items-center space-x-3 p-3 text-gray-300 hover:text-green-400 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
                         >
                           <Settings className="h-4 w-4" />
-                          <span className="text-sm">Paramètres</span>
+                          <span className="text-sm font-medium">Paramètres</span>
                         </button>
-                  <button
+                      </div>
+                      
+                      {/* Actions utilisateur mobile */}
+                      <div className="px-4 pt-2">
+                        <button
                           onClick={() => {
                             handleSignout();
                             setIsMobileMenuOpen(false);
                           }}
-                          className="flex-1 flex items-center justify-center space-x-2 p-3 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-all duration-200"
-                  >
-                    <LogOut className="h-4 w-4" />
-                          <span className="text-sm">Déconnexion</span>
-                  </button>
+                          className="w-full flex items-center justify-center space-x-2 p-3 text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-all duration-200"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span className="text-sm font-medium">Déconnexion</span>
+                        </button>
                       </div>
                     </div>
                 </>

@@ -557,17 +557,6 @@ export default function DashboardInfo({ user, isAdmin }: DashboardInfoProps) {
           route="/contact"
           index={4}
         />
-
-        <ActionCard
-          title="Paramètres"
-          description="Gérez vos préférences et paramètres de compte."
-          icon={<Settings className="h-5 w-5" />}
-          color="text-gray-400"
-          bgColor="bg-gray-400"
-          hoverColor="hover:bg-gray-500"
-          route="/settings"
-          index={5}
-        />
       </motion.div>
 
       {/* Actions Administrateur */}
