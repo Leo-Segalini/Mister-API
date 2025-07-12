@@ -77,10 +77,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Nettoyer complètement les données de session
       clearAllSessionData();
-      // Supprimer le token du localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token');
-      }
       
       // Forcer la redirection vers la page de connexion avec rechargement complet
       if (typeof window !== 'undefined') {
@@ -123,18 +119,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         cookieLength: sessionCookies.accessToken?.length || 0
       });
       
-      // Essayer de récupérer le profil utilisateur complet (incluant le rôle)
-      const userData = await apiService.getProfile();
-      console.log('✅ Session valid, user data:', userData);
+      // Validation de session simplifiée (profil mis en commentaire)
+      console.log('✅ Session validation simplified - using existing user data');
       
-      // S'assurer que le rôle est présent
-      const completeUserData = {
-        ...userData,
-        role: userData.role || 'user'
-      };
+      // Si on a déjà un utilisateur en état, le considérer comme valide
+      if (user) {
+        console.log('✅ Using existing user data for session validation');
+        return true;
+      }
       
-      setUser(completeUserData);
-      return true;
+      // Sinon, essayer de récupérer le profil (fallback)
+      try {
+        const userData = await apiService.getProfile();
+        console.log('✅ Session valid, user data:', userData);
+        
+        const completeUserData = {
+          ...userData,
+          role: userData.role || 'user'
+        };
+        
+        setUser(completeUserData);
+        return true;
+      } catch (error) {
+        console.warn('⚠️ Profile fetch failed, session may be invalid:', error);
+        return false;
+      }
     } catch (error: any) {
       console.error('❌ Session validation failed:', error);
       
@@ -187,11 +196,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        // Vérifier d'abord s'il y a un token dans le localStorage
-        let hasToken = false;
+        // Vérifier d'abord s'il y a des cookies de session
+        let hasCookies = false;
         if (typeof window !== 'undefined') {
-          hasToken = !!localStorage.getItem('access_token');
-          console.log(`🔑 Access token in localStorage: ${hasToken ? 'Found' : 'Not found'}`);
+          const sessionCookies = getSessionCookies();
+          hasCookies = sessionCookies?.hasCookies || false;
+          console.log(`🍪 Session cookies: ${hasCookies ? 'Found' : 'Not found'}`);
         }
         
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
@@ -210,9 +220,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
-        // Si on a un token, essayer de valider la session
-        if (hasToken) {
-          console.log('🔍 Access token found, validating session...');
+        // Si on a des cookies, essayer de valider la session
+        if (hasCookies) {
+          console.log('🔍 Cookies found, validating session...');
           const isValid = await validateSession();
           
           if (isValid && isMounted) {
@@ -222,7 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
           }
         } else {
-          console.log('📭 No access token found, but not redirecting automatically');
+          console.log('📭 No cookies found, but not redirecting automatically');
           // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
         }
       } catch (error) {
@@ -266,32 +276,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
-        // Récupérer les données complètes du profil depuis public.users
-        console.log('📋 Fetching complete user profile...');
-        try {
-          const profileData = await apiService.getProfile();
-          console.log('✅ Complete profile data:', profileData);
-          
-          // Fusionner les données d'authentification avec le profil complet
-          const completeUserData = {
-            ...response.data.user,
-            ...profileData,
-            // S'assurer que le rôle est bien présent
-            role: profileData.role || response.data.user.role || 'user'
-          };
-          
-          console.log('👤 Complete user data with role:', completeUserData);
-          setUser(completeUserData);
-        } catch (profileError) {
-          console.warn('⚠️ Could not fetch complete profile, using auth data:', profileError);
-          // En cas d'erreur, utiliser les données de auth.users avec rôle par défaut
-          const fallbackUserData = {
-            ...response.data.user,
-            role: response.data.user.role || 'user'
-          };
-          console.log('👤 Using fallback user data:', fallbackUserData);
-          setUser(fallbackUserData);
-        }
+        // Utiliser directement les données d'authentification (profil mis en commentaire)
+        console.log('📋 Using auth data directly (profile fetch commented out)...');
+        
+        // Utiliser les données de auth.users avec rôle par défaut
+        const userData = {
+          ...response.data.user,
+          role: response.data.user.role || 'user'
+        };
+        
+        console.log('👤 User data from auth:', userData);
+        setUser(userData);
         
         console.log('👤 User state updated with complete profile');
         // Rediriger vers le dashboard après connexion réussie
