@@ -76,6 +76,12 @@ class ApiService {
       });
     }
     
+    // Ajouter le token d'accès si présent
+    const accessToken = this.getAccessToken();
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
     const config: RequestInit = {
       headers,
       credentials: 'include', // Important pour les cookies
@@ -236,23 +242,22 @@ class ApiService {
    */
   async signin(credentials: AuthCredentials): Promise<AuthResponse> {
     console.log('🔐 Signin attempt with credentials:', { email: credentials.email });
-    
     try {
       const response = await this.request<AuthResponse>('/api/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify(credentials),
       });
-      
+      // Stocker le token d'accès dans le localStorage pour usage JS
+      if (response?.data?.session?.access_token) {
+        localStorage.setItem('access_token', response.data.session.access_token);
+      }
       // Les cookies sont automatiquement gérés par le navigateur
       // grâce à credentials: 'include' dans la requête
       console.log('🍪 Session cookies set automatically by browser');
-      
       return response;
-    } catch (error: any) {
-      // Gestion spécifique de l'erreur email non confirmé
-      if (error.message && error.message.includes('email n\'est pas encore confirmé')) {
-        throw new Error('EMAIL_NOT_CONFIRMED');
-      }
+    } catch (error) {
+      // Nettoyer le token en cas d'échec
+      localStorage.removeItem('access_token');
       throw error;
     }
   }
@@ -828,6 +833,12 @@ class ApiService {
     
     const response = await this.request<ApiResponse<any[]>>('/api/v1/payments/prices');
     return response.data;
+  }
+
+  // Méthode utilitaire pour récupérer le token d'accès
+  getAccessToken(): string | null {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('access_token');
   }
 }
 

@@ -77,6 +77,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Nettoyer complètement les données de session
       clearAllSessionData();
+      // Supprimer le token du localStorage
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('access_token');
+      }
       
       // Forcer la redirection vers la page de connexion avec rechargement complet
       if (typeof window !== 'undefined') {
@@ -183,12 +187,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return;
         }
         
-        // Vérifier d'abord s'il y a des cookies de session
-        let hasCookies = false;
+        // Vérifier d'abord s'il y a un token dans le localStorage
+        let hasToken = false;
         if (typeof window !== 'undefined') {
-          const sessionCookies = getSessionCookies();
-          hasCookies = sessionCookies?.hasCookies || false;
-          console.log(`🍪 Session cookies: ${hasCookies ? 'Found' : 'Not found'}`);
+          hasToken = !!localStorage.getItem('access_token');
+          console.log(`🔑 Access token in localStorage: ${hasToken ? 'Found' : 'Not found'}`);
         }
         
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
@@ -207,9 +210,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
         
-        // Si on a des cookies, essayer de valider la session
-        if (hasCookies) {
-          console.log('🔍 Cookies found, validating session...');
+        // Si on a un token, essayer de valider la session
+        if (hasToken) {
+          console.log('🔍 Access token found, validating session...');
           const isValid = await validateSession();
           
           if (isValid && isMounted) {
@@ -219,7 +222,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
           }
         } else {
-          console.log('📭 No cookies found, but not redirecting automatically');
+          console.log('📭 No access token found, but not redirecting automatically');
           // Ne pas rediriger automatiquement, laisser l'utilisateur gérer
         }
       } catch (error) {
