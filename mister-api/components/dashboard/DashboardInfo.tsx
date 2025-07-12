@@ -70,32 +70,32 @@ export default function DashboardInfo({ user, isAdmin }: DashboardInfoProps) {
   }, []);
 
   const loadDashboardData = async () => {
-    console.log('📊 [DASHBOARD] loadDashboardData - Début du chargement');
+    // console.log('📊 [DASHBOARD] loadDashboardData - Début du chargement');
     
     try {
       setIsLoading(true);
       
       // Charger les clés API existantes
-      console.log('📊 [DASHBOARD] Appel de apiService.getApiKeys()');
+      // console.log('📊 [DASHBOARD] Appel de apiService.getApiKeys()');
       const apiKeysData = await apiService.getApiKeys();
-      console.log('📊 [DASHBOARD] Réponse de getApiKeys():', apiKeysData);
-      console.log('📊 [DASHBOARD] Type de apiKeysData:', typeof apiKeysData);
-      console.log('📊 [DASHBOARD] Est-ce un tableau?', Array.isArray(apiKeysData));
+      // console.log('📊 [DASHBOARD] Réponse de getApiKeys():', apiKeysData);
+      // console.log('📊 [DASHBOARD] Type de apiKeysData:', typeof apiKeysData);
+      // console.log('📊 [DASHBOARD] Est-ce un tableau?', Array.isArray(apiKeysData));
       
       // S'assurer que apiKeysData est un tableau
       const safeApiKeysData = Array.isArray(apiKeysData) ? apiKeysData : [];
-      console.log('📊 [DASHBOARD] Nombre de clés API après vérification:', safeApiKeysData.length);
+      // console.log('📊 [DASHBOARD] Nombre de clés API après vérification:', safeApiKeysData.length);
       
       setApiKeys(safeApiKeysData);
-      console.log('📊 [DASHBOARD] État apiKeys mis à jour avec:', safeApiKeysData.length, 'clés');
+      // console.log('📊 [DASHBOARD] État apiKeys mis à jour avec:', safeApiKeysData.length, 'clés');
 
       // Charger les autres données seulement si on a des clés API
       if (safeApiKeysData.length > 0) {
-        console.log('📊 [DASHBOARD] Chargement des données supplémentaires car clés API trouvées');
+        // console.log('📊 [DASHBOARD] Chargement des données supplémentaires car clés API trouvées');
         try {
           // Ne charger que les données qui ne nécessitent pas de clé API
           // Les données qui nécessitent une clé API seront chargées à la demande
-          console.log('📊 [DASHBOARD] Données supplémentaires chargées avec succès');
+          // console.log('📊 [DASHBOARD] Données supplémentaires chargées avec succès');
           
           // Pour l'instant, on ne charge pas les données qui nécessitent une clé API
           // car elles causent des erreurs dans le dashboard
@@ -108,7 +108,7 @@ export default function DashboardInfo({ user, isAdmin }: DashboardInfoProps) {
           // Ne pas afficher d'erreur car c'est normal si l'utilisateur n'a pas encore utilisé sa clé
         }
       } else {
-        console.log('📊 [DASHBOARD] Aucune clé API trouvée, pas de chargement de données supplémentaires');
+        // console.log('📊 [DASHBOARD] Aucune clé API trouvée, pas de chargement de données supplémentaires');
       }
       
     } catch (error: any) {
@@ -121,14 +121,14 @@ export default function DashboardInfo({ user, isAdmin }: DashboardInfoProps) {
       // En cas d'erreur, s'assurer que apiKeys reste un tableau vide
       setApiKeys([]);
     } finally {
-      console.log('📊 [DASHBOARD] Fin du chargement, isLoading mis à false');
+      // console.log('📊 [DASHBOARD] Fin du chargement, isLoading mis à false');
       setIsLoading(false);
     }
   };
 
   // Fonction pour gérer le succès de création d'une clé API
   const handleApiKeyCreated = (newKey: ApiKey) => {
-    console.log('📊 [DASHBOARD] Nouvelle clé API créée, rechargement des données...');
+    // console.log('📊 [DASHBOARD] Nouvelle clé API créée, rechargement des données...');
     // Recharger toutes les données du dashboard
     loadDashboardData();
   };

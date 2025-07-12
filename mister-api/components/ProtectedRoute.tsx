@@ -36,7 +36,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
 
     // Vérifier l'authentification
     if (!isAuthenticated) {
-      console.log('🔒 Access denied: User not authenticated, redirecting to login');
+      // console.log('🔒 Access denied: User not authenticated, redirecting to login');
       setHasRedirected(true);
       router.push('/login');
       return;
@@ -44,7 +44,7 @@ export default function ProtectedRoute({ children, requireAdmin = false }: Prote
 
     // Vérifier les permissions admin si nécessaire
     if (requireAdmin && !isAdmin) {
-      console.log('🔒 Access denied: User not admin, redirecting to dashboard');
+      // console.log('🔒 Access denied: User not admin, redirecting to dashboard');
       setHasRedirected(true);
       router.push('/dashboard');
       return;

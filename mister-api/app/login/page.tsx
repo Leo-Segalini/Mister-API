@@ -8,13 +8,14 @@ import { Eye, EyeOff, Mail, Lock, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToastContext } from '@/components/ToastProvider';
 import { apiService } from '@/lib/api';
+import { event } from '@/lib/gtag';
 
 
 // Fonction utilitaire pour nettoyer les cookies et le stockage
 const clearAllSessionData = (): void => {
   if (typeof window === 'undefined') return;
   
-  console.log('🧹 [LOGIN] Nettoyage complet des données de session');
+  // // console.log('🧹 [LOGIN] Nettoyage complet des données de session');
   
   try {
     // Supprimer tous les cookies
@@ -41,7 +42,7 @@ const clearAllSessionData = (): void => {
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
     });
     
-    console.log('✅ [LOGIN] Nettoyage terminé avec succès');
+    // // console.log('✅ [LOGIN] Nettoyage terminé avec succès');
   } catch (error) {
     console.error('❌ [LOGIN] Erreur lors du nettoyage:', error);
   }
@@ -62,14 +63,14 @@ export default function Login() {
 
   // Nettoyer les cookies au chargement de la page de connexion
   useEffect(() => {
-    console.log('🧹 [LOGIN] Nettoyage des cookies au chargement de la page');
+    // // console.log('🧹 [LOGIN] Nettoyage des cookies au chargement de la page');
     clearAllSessionData();
   }, []);
 
   // Rediriger si déjà connecté
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      console.log('✅ [LOGIN] Utilisateur déjà connecté, redirection vers dashboard');
+      // // console.log('✅ [LOGIN] Utilisateur déjà connecté, redirection vers dashboard');
       router.push('/dashboard');
     }
   }, [isAuthenticated, isLoading, router]);
@@ -100,15 +101,22 @@ export default function Login() {
     setEmailNotConfirmed(false);
 
     try {
-      console.log('🚀 Starting login process...');
+      // // console.log('🚀 Starting login process...');
       await signin(formData.email, formData.password);
       
-      console.log('✅ Login successful, showing success message');
+      // // console.log('✅ Login successful, showing success message');
       showSuccess('Connexion réussie !', 'Bienvenue sur Mister API !');
+      
+      // Tracker l'événement de connexion réussie
+      event({
+        action: 'login',
+        category: 'authentication',
+        label: 'success'
+      });
       
       // Rediriger vers le dashboard après un délai
       setTimeout(() => {
-        console.log('🔄 Redirecting to dashboard...');
+        // // console.log('🔄 Redirecting to dashboard...');
         router.push('/dashboard');
       }, 1500);
 
@@ -157,6 +165,13 @@ export default function Login() {
           errorMessage = error.message;
         }
       }
+      
+      // Tracker l'événement de connexion échouée
+      event({
+        action: 'login',
+        category: 'authentication',
+        label: 'error'
+      });
       
       showError(errorTitle, errorMessage);
     } finally {

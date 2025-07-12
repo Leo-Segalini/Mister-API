@@ -33,12 +33,12 @@ export default function AuthGuard({
     const isPublicPath = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
 
     if (requireAuth && !isAuthenticated) {
-      console.log('🚫 Access denied, redirecting to login...');
+      // console.log('🚫 Access denied, redirecting to login...');
       setHasRedirected(true);
       router.push(redirectTo);
     } else if (!requireAuth && isAuthenticated && !isPublicPath) {
       // Seulement rediriger si on n'est pas déjà sur une page publique
-      console.log('✅ User already authenticated, redirecting to dashboard...');
+      // console.log('✅ User already authenticated, redirecting to dashboard...');
       setHasRedirected(true);
       router.push('/dashboard');
     }

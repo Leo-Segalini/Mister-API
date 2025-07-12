@@ -61,40 +61,40 @@ export function useCookies() {
     // Cookies nécessaires - toujours activés
     if (preferences.necessary) {
       // Activer les cookies de session, authentification, etc.
-      console.log('🍪 Cookies nécessaires activés');
+      // console.log('🍪 Cookies nécessaires activés');
     }
 
     // Cookies analytiques
     if (preferences.analytics) {
       // Activer Google Analytics
       enableGoogleAnalytics();
-      console.log('📊 Cookies analytiques activés');
+      // console.log('📊 Cookies analytiques activés');
     } else {
       // Désactiver Google Analytics
       disableGoogleAnalytics();
-      console.log('📊 Cookies analytiques désactivés');
+      // console.log('📊 Cookies analytiques désactivés');
     }
 
     // Cookies de marketing
     if (preferences.marketing) {
       // Activer les cookies de marketing
       enableMarketingCookies();
-      console.log('🎯 Cookies de marketing activés');
+      // console.log('🎯 Cookies de marketing activés');
     } else {
       // Désactiver les cookies de marketing
       disableMarketingCookies();
-      console.log('🎯 Cookies de marketing désactivés');
+      // console.log('🎯 Cookies de marketing désactivés');
     }
 
     // Cookies de préférences
     if (preferences.preferences) {
       // Activer les cookies de préférences
       enablePreferenceCookies();
-      console.log('⚙️ Cookies de préférences activés');
+      // console.log('⚙️ Cookies de préférences activés');
     } else {
       // Désactiver les cookies de préférences
       disablePreferenceCookies();
-      console.log('⚙️ Cookies de préférences désactivés');
+      // console.log('⚙️ Cookies de préférences désactivés');
     }
   }, []);
 
@@ -109,7 +109,7 @@ export function useCookies() {
     disableMarketingCookies();
     disablePreferenceCookies();
     
-    console.log('🔄 Préférences cookies réinitialisées');
+    // console.log('🔄 Préférences cookies réinitialisées');
   }, []);
 
   // Vérifier si l'utilisateur a donné son consentement
@@ -145,24 +145,16 @@ function enableGoogleAnalytics() {
   if (typeof window === 'undefined') return;
   
   // Activer Google Analytics
-  // Note: Vous devrez implémenter l'intégration avec Google Analytics
-  // Exemple avec gtag:
-  // window.gtag('consent', 'update', {
-  //   'analytics_storage': 'granted'
-  // });
-  
-  console.log('📊 Google Analytics activé');
+  // Note: L'initialisation se fait via le hook useGoogleAnalytics
+  // console.log('📊 Google Analytics activé');
 }
 
 function disableGoogleAnalytics() {
   if (typeof window === 'undefined') return;
   
   // Désactiver Google Analytics
-  // window.gtag('consent', 'update', {
-  //   'analytics_storage': 'denied'
-  // });
-  
-  console.log('📊 Google Analytics désactivé');
+  // Note: La suppression se fait via le hook useGoogleAnalytics
+  // console.log('📊 Google Analytics désactivé');
 }
 
 // Fonctions pour gérer les cookies de marketing
@@ -172,7 +164,7 @@ function enableMarketingCookies() {
   // Activer les cookies de marketing
   // Exemple: Facebook Pixel, Google Ads, etc.
   
-  console.log('🎯 Cookies de marketing activés');
+  // console.log('🎯 Cookies de marketing activés');
 }
 
 function disableMarketingCookies() {
@@ -180,7 +172,7 @@ function disableMarketingCookies() {
   
   // Désactiver les cookies de marketing
   
-  console.log('🎯 Cookies de marketing désactivés');
+  // console.log('🎯 Cookies de marketing désactivés');
 }
 
 // Fonctions pour gérer les cookies de préférences
@@ -190,7 +182,7 @@ function enablePreferenceCookies() {
   // Activer les cookies de préférences
   // Exemple: langue, thème, etc.
   
-  console.log('⚙️ Cookies de préférences activés');
+  // console.log('⚙️ Cookies de préférences activés');
 }
 
 function disablePreferenceCookies() {
@@ -198,5 +190,5 @@ function disablePreferenceCookies() {
   
   // Désactiver les cookies de préférences
   
-  console.log('⚙️ Cookies de préférences désactivés');
+  // console.log('⚙️ Cookies de préférences désactivés');
 } 

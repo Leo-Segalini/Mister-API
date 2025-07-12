@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="NestJS" />
-  <img src="https://nextjs.org/static/blog/next-15/next-15.png" width="120" alt="Next.js" />
+  <img src="https://mister-api.vercel.app/_next/image?url=%2Flogo.png&w=256&q=75" width="120" alt="NestJS" />
   <h1>🚀 Punchiline API - Plateforme Complète</h1>
   <p><strong>API RESTful + Interface Web pour la gestion de citations, animaux, pays et paiements</strong></p>
 </div>

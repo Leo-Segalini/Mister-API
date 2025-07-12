@@ -41,7 +41,7 @@ class ApiService {
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mister-api.onrender.com';
-    console.log('🚀 ApiService initialized with baseUrl:', this.baseUrl);
+    // console.log('🚀 ApiService initialized with baseUrl:', this.baseUrl);
   }
 
   /**
@@ -67,7 +67,7 @@ class ApiService {
     let accessToken = null;
     if (typeof window !== 'undefined') {
       accessToken = localStorage.getItem('access_token');
-      console.log('🔑 Token depuis localStorage:', accessToken ? 'Trouvé' : 'Non trouvé');
+      // console.log('🔑 Token depuis localStorage:', accessToken ? 'Trouvé' : 'Non trouvé');
     }
     
     const headers: Record<string, string> = {
@@ -86,7 +86,7 @@ class ApiService {
     // Ajouter le token dans le header Authorization si disponible
     if (accessToken) {
       headers['Authorization'] = `Bearer ${accessToken}`;
-      console.log('🔑 Token ajouté dans Authorization header');
+      // console.log('🔑 Token ajouté dans Authorization header');
     }
     
     const config: RequestInit = {
@@ -95,19 +95,19 @@ class ApiService {
       ...options,
     };
 
-    console.log(`🌐 Making API request to: ${url}`, {
-      method: config.method || 'GET',
-      headers: config.headers,
-      body: config.body ? 'present' : 'none',
-      retryCount,
-      credentials: config.credentials,
-      cookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
-    });
+    // console.log(`🌐 Making API request to: ${url}`, {
+    //   method: config.method || 'GET',
+    //   headers: config.headers,
+    //   body: config.body ? 'present' : 'none',
+    //   retryCount,
+    //   credentials: config.credentials,
+    //   cookies: typeof document !== 'undefined' ? document.cookie : 'N/A'
+    // });
 
     try {
       const response = await fetch(url, config);
-      console.log(`📡 Response status: ${response.status} for ${url}`);
-      console.log(`📡 Response headers:`, Object.fromEntries(response.headers.entries()));
+      // console.log(`📡 Response status: ${response.status} for ${url}`);
+      // console.log(`📡 Response headers:`, Object.fromEntries(response.headers.entries()));
       
       // Vérifier si la réponse contient du JSON
       const contentType = response.headers.get('content-type');
@@ -115,20 +115,20 @@ class ApiService {
       
       if (contentType && contentType.includes('application/json')) {
         data = await response.json();
-        console.log(`📦 Response data for ${url}:`, data);
+        // console.log(`📦 Response data for ${url}:`, data);
       } else {
         // Si ce n'est pas du JSON, lire comme texte
         const textData = await response.text();
-        console.log(`📦 Response text for ${url}:`, textData);
+        // console.log(`📦 Response text for ${url}:`, textData);
         data = { message: textData || 'Réponse non-JSON du serveur' };
       }
 
       if (!response.ok) {
-        console.error(`❌ API Error for ${url}:`, {
-          status: response.status,
-          statusText: response.statusText,
-          data
-        });
+        // console.error(`❌ API Error for ${url}:`, {
+        //   status: response.status,
+        //   statusText: response.statusText,
+        //   data
+        // });
         
         // Gestion spécifique des erreurs
         if (response.status === 401) {
@@ -177,7 +177,7 @@ class ApiService {
 
     // Les cookies sont automatiquement gérés par le navigateur
     // grâce à credentials: 'include' dans la requête
-    console.log('🍪 Session cookies set automatically by browser');
+    // console.log('🍪 Session cookies set automatically by browser');
   }
 
   /**
@@ -186,7 +186,7 @@ class ApiService {
   private clearSessionCookies(): void {
     if (typeof window === 'undefined') return;
 
-    console.log('🧹 Clearing all session cookies...');
+    // console.log('🧹 Clearing all session cookies...');
     
     // Liste de tous les cookies d'authentification à supprimer
     const cookiesToClear = [
@@ -209,22 +209,22 @@ class ApiService {
 
     // Vérifier que les cookies ont été supprimés
     const remainingCookies = document.cookie;
-    console.log('🧹 Remaining cookies after cleanup:', remainingCookies);
+    // console.log('🧹 Remaining cookies after cleanup:', remainingCookies);
     
     // Nettoyer aussi le localStorage et sessionStorage
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
       localStorage.removeItem('access_token');
-      console.log('🧹 LocalStorage cleared');
+      // console.log('🧹 LocalStorage cleared');
     }
     
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.clear();
-      console.log('🧹 SessionStorage cleared');
+      // console.log('🧹 SessionStorage cleared');
     }
     
-    console.log('🧹 Session cleanup complete');
+    // console.log('🧹 Session cleanup complete');
   }
 
   // ===== AUTHENTIFICATION =====
@@ -233,7 +233,7 @@ class ApiService {
    * Inscription d'un nouvel utilisateur
    */
   async signup(userData: RegisterData): Promise<AuthResponse> {
-    console.log('📝 Signup attempt with user data:', { email: userData.email });
+    // console.log('📝 Signup attempt with user data:', { email: userData.email });
     
     const response = await this.request<AuthResponse>('/api/v1/auth/register', {
       method: 'POST',
@@ -248,7 +248,7 @@ class ApiService {
    * Connexion utilisateur
    */
   async signin(credentials: AuthCredentials): Promise<AuthResponse> {
-    console.log('🔐 Signin attempt with credentials:', { email: credentials.email });
+    // console.log('🔐 Signin attempt with credentials:', { email: credentials.email });
     
     try {
       const response = await this.request<AuthResponse>('/api/v1/auth/login', {
@@ -261,7 +261,7 @@ class ApiService {
       // Stocker le token dans localStorage pour l'accès cross-origin
       if (typeof window !== 'undefined' && response.data?.session?.access_token) {
         localStorage.setItem('access_token', response.data.session.access_token);
-        console.log('🔐 Token stocké dans localStorage');
+        // console.log('🔐 Token stocké dans localStorage');
       }
       
       return response;
@@ -278,16 +278,16 @@ class ApiService {
    * Déconnexion utilisateur
    */
   async signout(): Promise<void> {
-    console.log('🚪 Signout attempt');
+    // console.log('🚪 Signout attempt');
     
     try {
       // Appeler l'endpoint de déconnexion du backend
       await this.request<void>('/api/v1/auth/logout', {
         method: 'POST',
       });
-      console.log('🚪 Backend logout successful');
+      // console.log('🚪 Backend logout successful');
     } catch (error) {
-      console.warn('🚪 Backend logout failed, but continuing with local cleanup:', error);
+      // console.warn('🚪 Backend logout failed, but continuing with local cleanup:', error);
       // Continuer même si l'appel backend échoue
     } finally {
       // Toujours nettoyer les cookies et le stockage local
@@ -295,7 +295,7 @@ class ApiService {
       
       // Forcer la redirection vers la page de connexion
       if (typeof window !== 'undefined') {
-        console.log('🚪 Redirecting to login page...');
+        // console.log('🚪 Redirecting to login page...');
         // Utiliser window.location.href pour forcer un rechargement complet
         window.location.href = '/login';
       }
@@ -306,7 +306,7 @@ class ApiService {
    * Récupération du profil utilisateur
    */
   async getProfile(): Promise<User> {
-    console.log('👤 Getting user profile');
+    // console.log('👤 Getting user profile');
     
     const response = await this.request<ApiResponse<User>>('/api/v1/auth/profile');
     return response.data;
@@ -316,7 +316,7 @@ class ApiService {
    * Mise à jour du profil utilisateur
    */
   async updateProfile(userData: Partial<User>): Promise<User> {
-    console.log('✏️ Updating user profile');
+    // console.log('✏️ Updating user profile');
     
     const response = await this.request<ApiResponse<User>>('/api/v1/auth/profile', {
       method: 'PUT',
@@ -330,7 +330,7 @@ class ApiService {
    * Changer le mot de passe
    */
   async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-    console.log('🔐 Changing password');
+    // console.log('🔐 Changing password');
     
     await this.request<ApiResponse<void>>('/api/v1/auth/change-password', {
       method: 'POST',
@@ -345,7 +345,7 @@ class ApiService {
    * Renvoyer l'email de confirmation
    */
   async resendConfirmationEmail(email: string): Promise<void> {
-    console.log('📧 Resending confirmation email for:', email);
+    // console.log('📧 Resending confirmation email for:', email);
     
     await this.request<void>('/api/v1/auth/resend-confirmation', {
       method: 'POST',
@@ -369,7 +369,7 @@ class ApiService {
    * Créer une clé API par défaut pour un nouvel utilisateur
    */
   async createDefaultApiKey(): Promise<ApiKey> {
-    console.log('🔑 Creating default API key for new user');
+    // console.log('🔑 Creating default API key for new user');
     
     return await this.createApiKey({
       name: 'Clé API par défaut',
@@ -388,7 +388,7 @@ class ApiService {
     table_name: string;
     type: 'free' | 'premium';
   }): Promise<ApiKey> {
-    console.log('🔑 Creating API key:', data);
+    // console.log('🔑 Creating API key:', data);
     
     const response = await this.request<ApiResponse<ApiKey>>('/api/v1/api-keys', {
       method: 'POST',
@@ -402,31 +402,31 @@ class ApiService {
    * Lister les clés API de l'utilisateur
    */
   async getApiKeys(): Promise<ApiKey[]> {
-    console.log('📋 Getting API keys - Début de la requête');
+    // console.log('📋 Getting API keys - Début de la requête');
     
     try {
       const response = await this.request<ApiResponse<{apiKeys: ApiKey[], total: number, page: number, limit: number, totalPages: number}>>('/api/v1/api-keys');
-      console.log('📋 API Response reçue:', response);
-      console.log('📋 Type de response.data:', typeof response.data);
-      console.log('📋 Contenu de response.data:', response.data);
+      // console.log('📋 API Response reçue:', response);
+      // console.log('📋 Type de response.data:', typeof response.data);
+      // console.log('📋 Contenu de response.data:', response.data);
       
       // Extraire le tableau apiKeys de l'objet response.data
       const apiKeysArray = response.data?.apiKeys || [];
       
       if (Array.isArray(apiKeysArray)) {
-        console.log('📋 Nombre de clés API trouvées:', apiKeysArray.length);
+        // console.log('📋 Nombre de clés API trouvées:', apiKeysArray.length);
         apiKeysArray.forEach((key, index) => {
-          console.log(`📋 Clé ${index + 1}:`, {
-            id: key.id,
-        name: key.name,
-        type: key.type,
-            table_name: key.table_name,
-            is_active: key.is_active,
-            created_at: key.created_at
-          });
+          // console.log(`📋 Clé ${index + 1}:`, {
+        //     id: key.id,
+        // name: key.name,
+        // type: key.type,
+        //     table_name: key.table_name,
+        //     is_active: key.is_active,
+        //     created_at: key.created_at
+        //   });
         });
       } else {
-        console.log('📋 ⚠️ apiKeysArray n\'est pas un tableau:', apiKeysArray);
+        // console.log('📋 ⚠️ apiKeysArray n\'est pas un tableau:', apiKeysArray);
       }
       
       return apiKeysArray;
@@ -445,7 +445,7 @@ class ApiService {
    * Récupérer une clé API spécifique
    */
   async getApiKey(id: string): Promise<ApiKey> {
-    console.log('🔍 Getting API key:', id);
+    // console.log('🔍 Getting API key:', id);
     
     const response = await this.request<ApiResponse<ApiKey>>(`/api/v1/api-keys/${id}`);
     return response.data;
@@ -455,7 +455,7 @@ class ApiService {
    * Mettre à jour une clé API
    */
   async updateApiKey(id: string, data: Partial<ApiKey>): Promise<ApiKey> {
-    console.log('✏️ Updating API key:', id);
+    // console.log('✏️ Updating API key:', id);
     
     const response = await this.request<ApiResponse<ApiKey>>(`/api/v1/api-keys/${id}`, {
       method: 'PUT',
@@ -469,8 +469,8 @@ class ApiService {
    * Supprimer une clé API
    */
   async deleteApiKey(id: string): Promise<void> {
-    console.log('🗑️ Deleting API key:', id);
-    
+    // console.log('🗑️ Deleting API key:', id);
+
     await this.request<void>(`/api/v1/api-keys/${id}`, {
       method: 'DELETE',
     });
@@ -480,8 +480,8 @@ class ApiService {
    * Configurer la sécurité d'une clé API
    */
   async configureApiKeySecurity(id: string, securityConfig: any): Promise<ApiKey> {
-    console.log('🔒 Configuring API key security:', id);
-    
+    // console.log('🔒 Configuring API key security:', id);
+
     const response = await this.request<ApiResponse<ApiKey>>(`/api/v1/api-keys/${id}/security`, {
       method: 'PUT',
       body: JSON.stringify(securityConfig),
@@ -509,8 +509,8 @@ class ApiService {
    * Lister les citations historiques
    */
   async getCitations(params: CitationParams = {}): Promise<ApiResponse<Citation[]>> {
-    console.log('📚 Getting citations with params:', params);
-    
+    //  console.log('📚 Getting citations with params:', params);
+
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -526,8 +526,8 @@ class ApiService {
    * Récupérer une citation spécifique
    */
   async getCitation(id: string): Promise<Citation> {
-    console.log('🔍 Getting citation:', id);
-    
+    // console.log('🔍 Getting citation:', id);
+
     const response = await this.request<ApiResponse<Citation>>(`/api/v1/punchlines/${id}`);
     return response.data;
   }
@@ -536,8 +536,8 @@ class ApiService {
    * Récupérer une citation aléatoire
    */
   async getRandomCitation(theme?: string): Promise<Citation> {
-    console.log('🎲 Getting random citation, theme:', theme);
-    
+    // console.log('🎲 Getting random citation, theme:', theme);
+
     const url = theme ? `/api/v1/punchlines/random?theme=${theme}` : '/api/v1/punchlines/random';
     const response = await this.request<ApiResponse<Citation>>(url);
     return response.data;
@@ -549,8 +549,8 @@ class ApiService {
    * Lister les animaux
    */
   async getAnimaux(params: AnimalParams = {}): Promise<ApiResponse<Animal[]>> {
-    console.log('🐾 Getting animaux with params:', params);
-    
+    // console.log('🐾 Getting animaux with params:', params);
+
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -566,8 +566,8 @@ class ApiService {
    * Récupérer un animal spécifique
    */
   async getAnimal(id: string): Promise<Animal> {
-    console.log('🔍 Getting animal:', id);
-    
+    // console.log('🔍 Getting animal:', id);
+
     const response = await this.request<ApiResponse<Animal>>(`/api/v1/animaux/${id}`);
     return response.data;
   }
@@ -576,8 +576,8 @@ class ApiService {
    * Récupérer un animal aléatoire
    */
   async getRandomAnimal(espece?: string): Promise<Animal> {
-    console.log('🎲 Getting random animal, espece:', espece);
-    
+    // console.log('🎲 Getting random animal, espece:', espece);
+
     const url = espece ? `/api/v1/animaux/random?espece=${espece}` : '/api/v1/animaux/random';
     const response = await this.request<ApiResponse<Animal>>(url);
     return response.data;
@@ -589,8 +589,8 @@ class ApiService {
    * Lister les pays
    */
   async getPays(params: PaysParams = {}): Promise<ApiResponse<Pays[]>> {
-    console.log('🌍 Getting pays with params:', params);
-    
+    // console.log('🌍 Getting pays with params:', params);
+
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined) {
@@ -606,8 +606,8 @@ class ApiService {
    * Récupérer un pays spécifique
    */
   async getPaysById(id: string): Promise<Pays> {
-    console.log('🔍 Getting pays:', id);
-    
+    // console.log('🔍 Getting pays:', id);
+
     const response = await this.request<ApiResponse<Pays>>(`/api/v1/pays/${id}`);
     return response.data;
   }
@@ -616,8 +616,8 @@ class ApiService {
    * Lister les pays d'Europe
    */
   async getPaysEurope(): Promise<Pays[]> {
-    console.log('🇪🇺 Getting European countries');
-    
+    // console.log('🇪🇺 Getting European countries');
+
     const response = await this.request<ApiResponse<Pays[]>>('/api/v1/pays/europe');
     return response.data;
   }
@@ -628,8 +628,8 @@ class ApiService {
    * Récupérer les statistiques d'utilisation d'une clé API
    */
   async getApiKeyStats(apiKeyId: string): Promise<ApiKeyUsageStats> {
-    console.log('📊 Getting API key stats for:', apiKeyId);
-    
+    // console.log('📊 Getting API key stats for:', apiKeyId);
+
     const response = await this.request<ApiResponse<ApiKeyUsageStats>>(`/api/v1/api-keys/${apiKeyId}/stats`);
     return response.data;
   }
@@ -638,8 +638,8 @@ class ApiService {
    * Récupérer les statistiques d'utilisation
    */
   async getUsageStats(): Promise<QuotaInfo> {
-    console.log('📊 Getting usage stats');
-    
+    // console.log('📊 Getting usage stats');
+
     const response = await this.request<ApiResponse<QuotaInfo>>('/api/v1/stats/usage');
     return response.data;
   }
@@ -648,8 +648,8 @@ class ApiService {
    * Récupérer les statistiques globales
    */
   async getGlobalStats(): Promise<any> {
-    console.log('📈 Getting global stats');
-    
+    // console.log('📈 Getting global stats');
+
     const response = await this.request<ApiResponse<any>>('/api/v1/stats/global');
     return response.data;
   }
@@ -660,8 +660,8 @@ class ApiService {
    * Créer une citation (admin)
    */
   async adminCreateCitation(data: CreateCitationData): Promise<Citation> {
-    console.log('👑 Admin creating citation');
-    
+    // console.log('👑 Admin creating citation');
+
     const response = await this.request<ApiResponse<Citation>>('/api/v1/admin/punchlines', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -674,8 +674,8 @@ class ApiService {
    * Mettre à jour une citation (admin)
    */
   async adminUpdateCitation(id: string, data: UpdateCitationData): Promise<Citation> {
-    console.log('👑 Admin updating citation:', id);
-    
+    // console.log('👑 Admin updating citation:', id);
+
     const response = await this.request<ApiResponse<Citation>>(`/api/v1/admin/punchlines/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -688,8 +688,8 @@ class ApiService {
    * Supprimer une citation (admin)
    */
   async adminDeleteCitation(id: string): Promise<void> {
-    console.log('👑 Admin deleting citation:', id);
-    
+    // console.log('👑 Admin deleting citation:', id);
+
     await this.request<void>(`/api/v1/admin/punchlines/${id}`, {
       method: 'DELETE',
     });
@@ -699,8 +699,8 @@ class ApiService {
    * Créer un animal (admin)
    */
   async adminCreateAnimal(data: CreateAnimalData): Promise<Animal> {
-    console.log('👑 Admin creating animal');
-    
+    // console.log('👑 Admin creating animal');
+
     const response = await this.request<ApiResponse<Animal>>('/api/v1/admin/animaux', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -713,8 +713,8 @@ class ApiService {
    * Mettre à jour un animal (admin)
    */
   async adminUpdateAnimal(id: string, data: UpdateAnimalData): Promise<Animal> {
-    console.log('👑 Admin updating animal:', id);
-    
+    // console.log('👑 Admin updating animal:', id);
+
     const response = await this.request<ApiResponse<Animal>>(`/api/v1/admin/animaux/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -727,8 +727,8 @@ class ApiService {
    * Supprimer un animal (admin)
    */
   async adminDeleteAnimal(id: string): Promise<void> {
-    console.log('👑 Admin deleting animal:', id);
-    
+    // console.log('👑 Admin deleting animal:', id);
+
     await this.request<void>(`/api/v1/admin/animaux/${id}`, {
       method: 'DELETE',
     });
@@ -738,8 +738,8 @@ class ApiService {
    * Créer un pays (admin)
    */
   async adminCreatePays(data: CreatePaysData): Promise<Pays> {
-    console.log('👑 Admin creating pays');
-    
+    // console.log('👑 Admin creating pays');
+
     const response = await this.request<ApiResponse<Pays>>('/api/v1/admin/pays', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -752,8 +752,8 @@ class ApiService {
    * Mettre à jour un pays (admin)
    */
   async adminUpdatePays(id: string, data: UpdatePaysData): Promise<Pays> {
-    console.log('👑 Admin updating pays:', id);
-    
+    // console.log('👑 Admin updating pays:', id);
+
     const response = await this.request<ApiResponse<Pays>>(`/api/v1/admin/pays/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -766,8 +766,8 @@ class ApiService {
    * Supprimer un pays (admin)
    */
   async adminDeletePays(id: string): Promise<void> {
-    console.log('👑 Admin deleting pays:', id);
-    
+    // console.log('👑 Admin deleting pays:', id);
+
     await this.request<void>(`/api/v1/admin/pays/${id}`, {
       method: 'DELETE',
     });
@@ -779,30 +779,30 @@ class ApiService {
    * Créer une session de paiement Stripe
    */
   async createCheckoutSession(priceId: string): Promise<{ url: string }> {
-    console.log('💳 Creating checkout session for price:', priceId);
-    console.log('🌐 Base URL:', this.baseUrl);
-    console.log('🔗 Full URL:', `${this.baseUrl}/api/v1/payments/create-checkout-session`);
-    
+    // console.log('💳 Creating checkout session for price:', priceId);
+    // console.log('🌐 Base URL:', this.baseUrl);
+    // console.log('🔗 Full URL:', `${this.baseUrl}/api/v1/payments/create-checkout-session`);
+
     const successUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://mister-api.vercel.app'}/dashboard?payment=success`;
     const cancelUrl = `${typeof window !== 'undefined' ? window.location.origin : 'https://mister-api.vercel.app'}/payment?payment=cancelled`;
     
-    console.log('✅ Success URL:', successUrl);
-    console.log('❌ Cancel URL:', cancelUrl);
-    
+    // console.log('✅ Success URL:', successUrl);
+    // console.log('❌ Cancel URL:', cancelUrl);
+
     const requestBody = {
       priceId,
       successUrl,
       cancelUrl,
     };
     
-    console.log('📦 Request body:', requestBody);
-    
+    // console.log('📦 Request body:', requestBody);
+
     const response = await this.request<ApiResponse<{ url: string }>>('/api/v1/payments/create-checkout-session', {
       method: 'POST',
       body: JSON.stringify(requestBody),
     });
     
-    console.log('✅ Checkout session created:', response);
+    // console.log('✅ Checkout session created:', response);
     return response.data;
   }
 
@@ -810,8 +810,8 @@ class ApiService {
    * Créer une session du portail client Stripe
    */
   async createPortalSession(): Promise<{ url: string }> {
-    console.log('🏢 Creating portal session');
-    
+    //  console.log('🏢 Creating portal session');
+
     const response = await this.request<ApiResponse<{ url: string }>>('/api/v1/payments/create-portal-session', {
       method: 'POST',
       body: JSON.stringify({ 
@@ -826,7 +826,7 @@ class ApiService {
    * Récupérer les prix Stripe
    */
   async getPrices(): Promise<any[]> {
-    console.log('💰 Getting prices');
+    // console.log('💰 Getting prices');
     
     const response = await this.request<ApiResponse<any[]>>('/api/v1/payments/prices');
     return response.data;

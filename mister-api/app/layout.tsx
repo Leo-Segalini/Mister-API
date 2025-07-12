@@ -7,6 +7,7 @@ import CookieBannerWrapper from "@/components/CookieBannerWrapper";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ToastProvider } from "@/components/ToastProvider";
 import { CookieProvider } from "@/components/CookieProvider";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -77,6 +78,7 @@ export default function RootLayout({
                 </main>
                 <Footer />
                 <CookieBannerWrapper />
+                <GoogleAnalytics />
               </div>
             </CookieProvider>
           </ToastProvider>

@@ -15,6 +15,7 @@ import {
 import { apiService } from '@/lib/api';
 import { useToastContext } from '@/components/ToastProvider';
 import type { ApiKey } from '@/types';
+import { event } from '@/lib/gtag';
 
 interface CreateApiKeyModalProps {
   isOpen: boolean;
@@ -58,6 +59,13 @@ export default function CreateApiKeyModal({
       
       // Fermer la modal
       onClose();
+      
+      // Tracker l'événement de création de clé API
+      event({
+        action: 'create_api_key',
+        category: 'dashboard',
+        label: `${newKeyTable}_${keyType}`
+      });
       
       // Notifier le parent du succès
       onSuccess(newKey);

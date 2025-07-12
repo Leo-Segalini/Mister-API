@@ -37,11 +37,11 @@ function PaymentContent() {
 
   // Logs de débogage pour l'authentification
   useEffect(() => {
-    console.log('🔍 [PAYMENT] État de l\'authentification:', {
-      user: user ? { id: user.id, email: user.email, is_premium: user.is_premium } : null,
-      authLoading,
-      isAuthenticated
-    });
+    // // console.log('🔍 [PAYMENT] État de l\'authentification:', {
+    //   user: user ? { id: user.id, email: user.email, is_premium: user.is_premium } : null,
+    //   authLoading,
+    //   isAuthenticated
+    // });
   }, [user, authLoading, isAuthenticated]);
 
   // Récupérer les prix disponibles au chargement
@@ -52,10 +52,10 @@ function PaymentContent() {
         if (prices && prices.length > 0) {
           // Utiliser le premier prix disponible
           setPremiumPriceId(prices[0].id);
-          console.log('💰 [PAYMENT] Prix récupéré:', prices[0].id);
+          // console.log('💰 [PAYMENT] Prix récupéré:', prices[0].id);
         }
       } catch (error) {
-        console.log('💰 [PAYMENT] Utilisation du prix par défaut:', premiumPriceId);
+        // console.log('💰 [PAYMENT] Utilisation du prix par défaut:', premiumPriceId);
       }
     };
 
@@ -73,7 +73,7 @@ function PaymentContent() {
   const addDebugLog = (message: string) => {
     const timestamp = new Date().toLocaleTimeString();
     setDebugLogs(prev => [...prev, `[${timestamp}] ${message}`]);
-    console.log(message);
+    // // console.log(message);
   };
 
   const handleUpgradeToPremium = async () => {
@@ -129,7 +129,7 @@ function PaymentContent() {
         const checkClosed = setInterval(async () => {
           if (stripeWindow.closed) {
             clearInterval(checkClosed);
-            console.log('✅ [PAYMENT] Fenêtre Stripe fermée - vérification du statut...');
+            // // console.log('✅ [PAYMENT] Fenêtre Stripe fermée - vérification du statut...');
             
             // Attendre un peu pour que le webhook soit traité
             setTimeout(async () => {
@@ -140,15 +140,15 @@ function PaymentContent() {
                 // Vérifier si l'utilisateur est maintenant premium
                 const updatedUser = await apiService.getProfile();
                 if (updatedUser.is_premium) {
-                  console.log('✅ [PAYMENT] Utilisateur mis à jour vers Premium !');
+                  // // console.log('✅ [PAYMENT] Utilisateur mis à jour vers Premium !');
                   showSuccess('Paiement réussi !', 'Votre compte a été mis à jour vers Premium.');
                   router.push('/dashboard?payment=success');
                 } else {
-                  console.log('⚠️ [PAYMENT] Utilisateur pas encore mis à jour, redirection...');
+                  // // console.log('⚠️ [PAYMENT] Utilisateur pas encore mis à jour, redirection...');
                   router.push('/dashboard?payment=pending');
                 }
               } catch (error) {
-                console.log('⚠️ [PAYMENT] Erreur lors de la vérification, redirection...');
+                // // console.log('⚠️ [PAYMENT] Erreur lors de la vérification, redirection...');
                 router.push('/dashboard?payment=pending');
               }
             }, 2000); // Attendre 2 secondes pour le webhook

@@ -32,7 +32,7 @@ export function middleware(request: NextRequest) {
   // TEMPORAIREMENT DÉSACTIVÉ - Laisser la logique côté client gérer l'authentification
   // pour éviter les conflits et les boucles infinies
   
-  console.log(`🔍 Middleware - Route: ${pathname} (middleware temporairement désactivé)`);
+  // // console.log(`🔍 Middleware - Route: ${pathname} (middleware temporairement désactivé)`);
 
   // Ajouter des headers de sécurité seulement
   const response = NextResponse.next();

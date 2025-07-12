@@ -36,11 +36,11 @@ function StatsContent() {
   // Charger les clés API de l'utilisateur
   const loadApiKeys = async () => {
     try {
-      console.log('📊 [STATS] Chargement des clés API...');
+      // console.log('📊 [STATS] Chargement des clés API...');
       setError(null);
       
       const keys = await apiService.getApiKeys();
-      console.log('📊 [STATS] Clés API récupérées:', keys.length);
+      // console.log('📊 [STATS] Clés API récupérées:', keys.length);
       setApiKeys(keys);
       
       // Sélectionner automatiquement la première clé si aucune n'est sélectionnée
@@ -65,14 +65,14 @@ function StatsContent() {
   // Charger les statistiques pour la clé API sélectionnée
   const loadStatsData = async () => {
     if (!selectedApiKey) {
-      console.log('📊 [STATS] Aucune clé API sélectionnée, impossible de charger les stats');
+      // console.log('📊 [STATS] Aucune clé API sélectionnée, impossible de charger les stats');
       return;
     }
     
     try {
       setIsLoading(true);
       setError(null);
-      console.log('📊 [STATS] Chargement des statistiques pour la clé:', selectedApiKey.substring(0, 10) + '...');
+      // console.log('📊 [STATS] Chargement des statistiques pour la clé:', selectedApiKey.substring(0, 10) + '...');
       
       // Trouver la clé API sélectionnée dans la liste
       const selectedKey = apiKeys.find(key => key.api_key === selectedApiKey);
@@ -81,11 +81,11 @@ function StatsContent() {
         throw new Error('Clé API sélectionnée non trouvée');
       }
       
-      console.log('📊 [STATS] Clé API trouvée:', selectedKey);
+      // console.log('📊 [STATS] Clé API trouvée:', selectedKey);
       
       // Récupérer les vraies statistiques d'utilisation depuis l'API
       const stats = await apiService.getApiKeyStats(selectedKey.id);
-      console.log('📊 [STATS] Statistiques d\'utilisation récupérées:', stats);
+      // console.log('📊 [STATS] Statistiques d\'utilisation récupérées:', stats);
       
       setUsageStats(stats);
       
@@ -110,7 +110,7 @@ function StatsContent() {
   };
 
   const handleApiKeyChange = (apiKey: string) => {
-    console.log('📊 [STATS] Changement de clé API sélectionnée:', apiKey.substring(0, 10) + '...');
+    // console.log('📊 [STATS] Changement de clé API sélectionnée:', apiKey.substring(0, 10) + '...');
     setSelectedApiKey(apiKey);
     
     // Recharger automatiquement les statistiques pour la nouvelle clé
@@ -126,7 +126,7 @@ function StatsContent() {
       if (authLoading) return;
       
       if (!isAuthenticated) {
-        console.log('📊 [STATS] Utilisateur non authentifié, redirection...');
+        // console.log('📊 [STATS] Utilisateur non authentifié, redirection...');
         return;
       }
       

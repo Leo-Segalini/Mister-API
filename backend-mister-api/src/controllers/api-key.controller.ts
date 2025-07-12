@@ -126,9 +126,9 @@ export class ApiKeyController {
     @Query() query: ApiKeyQueryDto,
     @Req() req: AuthenticatedRequest
   ) {
-    console.log('🔍 [API-KEY-CONTROLLER] findAll - Début de la requête');
-    console.log('🔍 [API-KEY-CONTROLLER] User ID:', req.user?.id);
-    console.log('🔍 [API-KEY-CONTROLLER] Query params:', query);
+    // console.log('🔍 [API-KEY-CONTROLLER] findAll - Début de la requête');
+    // console.log('🔍 [API-KEY-CONTROLLER] User ID:', req.user?.id);
+    // console.log('🔍 [API-KEY-CONTROLLER] Query params:', query);
     
     if (!req.user?.id) {
       console.error('🔍 [API-KEY-CONTROLLER] ❌ Utilisateur non authentifié');
@@ -136,27 +136,27 @@ export class ApiKeyController {
     }
     
     try {
-      console.log('🔍 [API-KEY-CONTROLLER] Appel du service findAllByUser');
+      // console.log('🔍 [API-KEY-CONTROLLER] Appel du service findAllByUser');
       const result = await this.apiKeyService.findAllByUser(query, req.user.id);
-      console.log('🔍 [API-KEY-CONTROLLER] Résultat du service:', result);
-      console.log('🔍 [API-KEY-CONTROLLER] Type de result.data:', typeof result.data);
-      console.log('🔍 [API-KEY-CONTROLLER] Structure de result.data:', result.data);
+      // console.log('🔍 [API-KEY-CONTROLLER] Résultat du service:', result);
+      // console.log('🔍 [API-KEY-CONTROLLER] Type de result.data:', typeof result.data);
+      // console.log('🔍 [API-KEY-CONTROLLER] Structure de result.data:', result.data);
       
       if (result.data && result.data.apiKeys) {
-        console.log('🔍 [API-KEY-CONTROLLER] Nombre de clés API trouvées:', result.data.apiKeys.length);
+        // console.log('🔍 [API-KEY-CONTROLLER] Nombre de clés API trouvées:', result.data.apiKeys.length);
         result.data.apiKeys.forEach((key: any, index: number) => {
-          console.log(`🔍 [API-KEY-CONTROLLER] Clé ${index + 1}:`, {
-            id: key.id,
-            name: key.name,
-            type: key.type,
-            table_name: key.table_name,
-            user_id: key.user_id,
-            is_active: key.is_active,
-            created_at: key.created_at
-          });
+          // console.log(`🔍 [API-KEY-CONTROLLER] Clé ${index + 1}:`, {
+          //   id: key.id,
+          //   name: key.name,
+          //   type: key.type,
+          //   table_name: key.table_name,
+          //   user_id: key.user_id,
+          //   is_active: key.is_active,
+          //   created_at: key.created_at
+          // });
         });
       } else {
-        console.log('🔍 [API-KEY-CONTROLLER] ⚠️ Aucune clé API trouvée ou structure inattendue');
+        // console.log('🔍 [API-KEY-CONTROLLER] ⚠️ Aucune clé API trouvée ou structure inattendue');
       }
       
       return result;

@@ -120,7 +120,7 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
       },
       // Ajouter une méthode close factice pour éviter l'erreur
       close: () => {
-        console.log('Mock WebSocket fermé');
+        // console.log('Mock WebSocket fermé');
       }
     };
     

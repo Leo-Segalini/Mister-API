@@ -26,7 +26,7 @@ export function useAdmin(redirectTo = '/dashboard') {
 
     // Si l'utilisateur n'est pas admin, rediriger
     if (!isAdmin) {
-      console.log('🚫 Access denied: User is not admin');
+      // console.log('🚫 Access denied: User is not admin');
       router.push(redirectTo);
       return;
     }

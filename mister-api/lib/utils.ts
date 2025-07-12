@@ -123,7 +123,7 @@ export function copyToClipboard(text: string): Promise<boolean> {
 export const clearAllSessionData = (): void => {
   if (typeof window === 'undefined') return;
   
-  console.log('🧹 [UTILS] Nettoyage complet des données de session');
+  // console.log('🧹 [UTILS] Nettoyage complet des données de session');
   
   try {
     // Supprimer tous les cookies
@@ -150,7 +150,7 @@ export const clearAllSessionData = (): void => {
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
     });
     
-    console.log('✅ [UTILS] Nettoyage terminé avec succès');
+    // console.log('✅ [UTILS] Nettoyage terminé avec succès');
   } catch (error) {
     console.error('❌ [UTILS] Erreur lors du nettoyage:', error);
   }

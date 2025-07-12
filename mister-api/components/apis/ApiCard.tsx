@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Play
 } from 'lucide-react';
+import { event } from '@/lib/gtag';
 
 interface ApiCardProps {
   api: {
@@ -273,6 +274,13 @@ Authorization: Bearer votre_clé_api`,
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 href={api.documentation}
+                onClick={() => {
+                  event({
+                    action: 'click',
+                    category: 'api_card',
+                    label: `${api.name}_documentation`
+                  })
+                }}
                 className="bg-green-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-green-300 transition-colors inline-flex items-center space-x-2 w-full justify-center shadow-sm"
               >
                 <Book className="h-5 w-5" />
@@ -283,6 +291,13 @@ Authorization: Bearer votre_clé_api`,
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 href="/pricing"
+                onClick={() => {
+                  event({
+                    action: 'click',
+                    category: 'api_card',
+                    label: `${api.name}_pricing`
+                  })
+                }}
                 className="border-2 border-green-400 text-green-400 px-6 py-3 rounded-lg font-semibold hover:bg-green-400 hover:text-black transition-colors inline-flex items-center space-x-2 w-full justify-center"
               >
                 <span>Voir les tarifs</span>
@@ -293,6 +308,13 @@ Authorization: Bearer votre_clé_api`,
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 href="/login"
+                onClick={() => {
+                  event({
+                    action: 'click',
+                    category: 'api_card',
+                    label: `${api.name}_start_free`
+                  })
+                }}
                 className="bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors inline-flex items-center space-x-2 w-full justify-center border border-gray-700"
               >
                 <span>Commencer gratuitement</span>

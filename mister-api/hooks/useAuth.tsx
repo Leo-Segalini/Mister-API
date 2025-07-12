@@ -21,7 +21,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const clearAllSessionData = () => {
   if (typeof window === 'undefined') return;
 
-  console.log('🧹 Clearing all session data...');
+  // console.log('🧹 Clearing all session data...');
   
   // Liste de tous les cookies d'authentification à supprimer
   const cookiesToClear = [
@@ -46,15 +46,15 @@ const clearAllSessionData = () => {
   if (typeof localStorage !== 'undefined') {
     localStorage.removeItem('supabase.auth.token');
     localStorage.removeItem('sb-iqblthgenholebudyvcx-auth-token');
-    console.log('🧹 LocalStorage cleared');
+    // console.log('🧹 LocalStorage cleared');
   }
   
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.clear();
-    console.log('🧹 SessionStorage cleared');
+    // console.log('🧹 SessionStorage cleared');
   }
   
-  console.log('🧹 Session cleanup complete');
+  // console.log('🧹 Session cleanup complete');
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -66,20 +66,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fonction de déconnexion sécurisée
   const signout = useCallback(async () => {
     try {
-      console.log('🚪 Signing out user');
+      // console.log('🚪 Signing out user');
       await apiService.signout();
     } catch (error) {
       console.error('❌ Signout error:', error);
     } finally {
       setUser(null);
-      console.log('✅ User signed out, state cleared');
+      // console.log('✅ User signed out, state cleared');
       
       // Nettoyer complètement les données de session
       clearAllSessionData();
       
       // Forcer la redirection vers la page de connexion avec rechargement complet
       if (typeof window !== 'undefined') {
-        console.log('🚪 Redirecting to login page with full reload...');
+        // console.log('🚪 Redirecting to login page with full reload...');
         window.location.href = '/login';
       }
     }
@@ -88,21 +88,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fonction de validation de session
   const validateSession = useCallback(async (): Promise<boolean> => {
     try {
-      console.log('🔍 Validating session...');
+      // console.log('🔍 Validating session...');
       
       // Vérifier d'abord s'il y a un token dans le localStorage
       if (typeof window !== 'undefined') {
         const token = localStorage.getItem('access_token');
         if (!token) {
-          console.log('🔑 No token found in localStorage');
+          // console.log('🔑 No token found in localStorage');
           return false;
         }
-        console.log('🔑 Token found in localStorage, validating with server...');
+        // console.log('🔑 Token found in localStorage, validating with server...');
       }
       
       // Essayer de récupérer le profil utilisateur
       const userData = await apiService.getProfile();
-      console.log('✅ Session valid, user data:', userData);
+      // console.log('✅ Session valid, user data:', userData);
       setUser(userData);
       return true;
     } catch (error: any) {
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Si c'est une erreur 401 (non autorisé), la session est invalide
       if (error.message && error.message.includes('401')) {
-        console.log('🔒 Session expired (401) - clearing localStorage');
+        // console.log('🔒 Session expired (401) - clearing localStorage');
         // Nettoyer le localStorage en cas de session expirée
         if (typeof window !== 'undefined') {
           localStorage.removeItem('access_token');
@@ -124,12 +124,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error.message.includes('Erreur de connexion au serveur') ||
         error.message.includes('fetch')
       )) {
-        console.log('🌐 Network error, keeping current session state');
+        // console.log('🌐 Network error, keeping current session state');
         return false;
       }
       
       // Pour les autres erreurs, considérer comme invalide
-      console.log('❌ Other error, session invalid');
+      // console.log('❌ Other error, session invalid');
       return false;
     }
   }, []);
@@ -140,14 +140,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        console.log('🔐 Initializing authentication...');
+        // console.log('🔐 Initializing authentication...');
         
         // Vérifier d'abord s'il y a un token dans le localStorage
         let hasToken = false;
         if (typeof window !== 'undefined') {
           const token = localStorage.getItem('access_token');
           hasToken = !!token;
-          console.log(`🔑 Token in localStorage: ${hasToken ? 'Found' : 'Not found'}`);
+          // console.log(`🔑 Token in localStorage: ${hasToken ? 'Found' : 'Not found'}`);
         }
         
         // Vérifier si on est sur une page publique (pas besoin de vérifier l'auth)
@@ -159,7 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const isPublicPage = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
           
           if (isPublicPage) {
-            console.log('🌐 Public page detected, skipping auth check');
+            // console.log('🌐 Public page detected, skipping auth check');
             setIsLoading(false);
             setIsInitialized(true);
             return;
@@ -168,31 +168,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Si on a un token, essayer de valider la session
         if (hasToken) {
-          console.log('🔍 Token found, validating session...');
+          // console.log('🔍 Token found, validating session...');
           const isValid = await validateSession();
           
           if (isValid && isMounted) {
-            console.log('✅ Valid session found, user authenticated');
+            // console.log('✅ Valid session found, user authenticated');
           } else if (!isValid && isMounted) {
-            console.log('📭 Invalid session, redirecting to login');
+            // console.log('📭 Invalid session, redirecting to login');
             // Rediriger vers la page de connexion si on est sur une page protégée
             if (typeof window !== 'undefined') {
               const currentPath = window.location.pathname;
               const protectedPaths = ['/dashboard', '/payment'];
               if (protectedPaths.some(path => currentPath.startsWith(path))) {
-                console.log('🔄 Redirecting to login page');
+                // console.log('🔄 Redirecting to login page');
                 router.push('/login');
               }
             }
           }
         } else {
-          console.log('📭 No token found, redirecting to login');
+          // console.log('📭 No token found, redirecting to login');
           // Pas de token, rediriger vers la page de connexion si on est sur une page protégée
           if (typeof window !== 'undefined') {
             const currentPath = window.location.pathname;
             const protectedPaths = ['/dashboard', '/payment'];
             if (protectedPaths.some(path => currentPath.startsWith(path))) {
-              console.log('🔄 Redirecting to login page');
+              // console.log('🔄 Redirecting to login page');
               router.push('/login');
             }
           }
@@ -213,7 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMounted) {
           setIsLoading(false);
           setIsInitialized(true);
-          console.log('🏁 Auth initialization complete');
+          // console.log('🏁 Auth initialization complete');
         }
       }
     };
@@ -238,10 +238,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Vérifier périodiquement si la session est toujours valide
         await apiService.getProfile();
       } catch (error) {
-        console.log('⚠️ Session expired, signing out...');
+        // console.log('⚠️ Session expired, signing out...');
         
         if (isMounted) {
-          console.log('❌ Session invalid, signing out...');
+          // console.log('❌ Session invalid, signing out...');
           await signout();
         }
       }
@@ -258,17 +258,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signin = async (email: string, password: string) => {
     try {
-      console.log('🚀 Starting signin process...');
+      // console.log('🚀 Starting signin process...');
       const response: AuthResponse = await apiService.signin({ email, password });
       
-      console.log('✅ Signin successful:', response);
+      // console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
         // Récupérer les données complètes du profil depuis public.users
-        console.log('📋 Fetching complete user profile...');
+        // console.log('📋 Fetching complete user profile...');
         try {
           const profileData = await apiService.getProfile();
-          console.log('✅ Complete profile data:', profileData);
+          // console.log('✅ Complete profile data:', profileData);
           setUser(profileData);
         } catch (profileError) {
           console.warn('⚠️ Could not fetch complete profile, using auth data:', profileError);
@@ -276,7 +276,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(response.data.user);
         }
         
-        console.log('👤 User state updated with complete profile');
+        // console.log('👤 User state updated with complete profile');
         // Rediriger vers le dashboard après connexion réussie
         router.push('/dashboard');
       } else {
@@ -300,15 +300,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (userData: RegisterData) => {
     try {
-      console.log('📝 Attempting signup for:', userData.email);
+      // console.log('📝 Attempting signup for:', userData.email);
       const response: AuthResponse = await apiService.signup(userData);
       
-      console.log('✅ Signup successful:', response);
+      // console.log('✅ Signup successful:', response);
       
       // Ne pas connecter automatiquement l'utilisateur après l'inscription
       // L'utilisateur doit d'abord confirmer son email
       if (response.success) {
-        console.log('📧 User registered successfully, email confirmation required');
+        // console.log('📧 User registered successfully, email confirmation required');
         // Rediriger vers la page de succès
         router.push('/register/success');
       } else {

@@ -745,36 +745,36 @@ export class ApiKeyService {
    * Récupère toutes les clés API d'un utilisateur avec pagination
    */
   async findAllByUser(query: any, userId: string): Promise<ApiResponse<any>> {
-    console.log('🔧 [API-KEY-SERVICE] findAllByUser - Début');
-    console.log('🔧 [API-KEY-SERVICE] User ID:', userId);
-    console.log('🔧 [API-KEY-SERVICE] Query:', query);
+    // console.log('🔧 [API-KEY-SERVICE] findAllByUser - Début');
+    // console.log('🔧 [API-KEY-SERVICE] User ID:', userId);
+    // console.log('🔧 [API-KEY-SERVICE] Query:', query);
     
     try {
       const { page = 1, limit = 20, table_name, type, is_active, search } = query;
-      console.log('🔧 [API-KEY-SERVICE] Paramètres extraits:', { page, limit, table_name, type, is_active, search });
+      // console.log('🔧 [API-KEY-SERVICE] Paramètres extraits:', { page, limit, table_name, type, is_active, search });
       
       const queryBuilder = this.apiKeyRepository.createQueryBuilder('apiKey');
       queryBuilder.where('apiKey.user_id = :userId', { userId });
-      console.log('🔧 [API-KEY-SERVICE] QueryBuilder créé avec user_id =', userId);
+      // console.log('🔧 [API-KEY-SERVICE] QueryBuilder créé avec user_id =', userId);
       
       if (table_name) {
         queryBuilder.andWhere('apiKey.table_name = :table_name', { table_name });
-        console.log('🔧 [API-KEY-SERVICE] Filtre table_name ajouté:', table_name);
+        // console.log('🔧 [API-KEY-SERVICE] Filtre table_name ajouté:', table_name);
       }
       
       if (type) {
         queryBuilder.andWhere('apiKey.type = :type', { type });
-        console.log('🔧 [API-KEY-SERVICE] Filtre type ajouté:', type);
+        // console.log('🔧 [API-KEY-SERVICE] Filtre type ajouté:', type);
       }
       
       if (is_active !== undefined) {
         queryBuilder.andWhere('apiKey.is_active = :is_active', { is_active });
-        console.log('🔧 [API-KEY-SERVICE] Filtre is_active ajouté:', is_active);
+        // console.log('🔧 [API-KEY-SERVICE] Filtre is_active ajouté:', is_active);
       }
       
       if (search) {
         queryBuilder.andWhere('apiKey.name ILIKE :search', { search: `%${search}%` });
-        console.log('🔧 [API-KEY-SERVICE] Filtre search ajouté:', search);
+        // console.log('🔧 [API-KEY-SERVICE] Filtre search ajouté:', search);
       }
 
       const offset = (page - 1) * limit;
@@ -783,43 +783,43 @@ export class ApiKeyService {
         .skip(offset)
         .take(limit);
 
-      console.log('🔧 [API-KEY-SERVICE] Exécution de la requête avec offset:', offset, 'et limit:', limit);
+      // console.log('🔧 [API-KEY-SERVICE] Exécution de la requête avec offset:', offset, 'et limit:', limit);
       
       const [apiKeys, total] = await queryBuilder.getManyAndCount();
-      console.log('🔧 [API-KEY-SERVICE] Résultat de la requête:');
-      console.log('🔧 [API-KEY-SERVICE] - Nombre de clés trouvées:', apiKeys.length);
-      console.log('🔧 [API-KEY-SERVICE] - Total dans la base:', total);
+      // console.log('🔧 [API-KEY-SERVICE] Résultat de la requête:');
+      // console.log('🔧 [API-KEY-SERVICE] - Nombre de clés trouvées:', apiKeys.length);
+      // console.log('🔧 [API-KEY-SERVICE] - Total dans la base:', total);
       
       if (apiKeys.length > 0) {
         apiKeys.forEach((key, index) => {
-          console.log(`🔧 [API-KEY-SERVICE] Clé ${index + 1}:`, {
-            id: key.id,
-            name: key.name,
-            type: key.type,
-            table_name: key.table_name,
-            user_id: key.user_id,
-            is_active: key.is_active,
-            created_at: key.created_at
-          });
+          // console.log(`🔧 [API-KEY-SERVICE] Clé ${index + 1}:`, {
+          //   id: key.id,
+          //   name: key.name,
+          //   type: key.type,
+          //   table_name: key.table_name,
+          //   user_id: key.user_id,
+          //   is_active: key.is_active,
+          //   created_at: key.created_at
+          // });
         });
       } else {
-        console.log('🔧 [API-KEY-SERVICE] ⚠️ Aucune clé API trouvée pour l\'utilisateur');
+        // console.log('🔧 [API-KEY-SERVICE] ⚠️ Aucune clé API trouvée pour l\'utilisateur');
         
         // Vérifier si l'utilisateur existe dans la table api_keys
         const allKeysForUser = await this.apiKeyRepository.find({
           where: { user_id: userId }
         });
-        console.log('🔧 [API-KEY-SERVICE] Vérification directe - Toutes les clés pour cet utilisateur:', allKeysForUser.length);
+        // console.log('🔧 [API-KEY-SERVICE] Vérification directe - Toutes les clés pour cet utilisateur:', allKeysForUser.length);
         
         if (allKeysForUser.length > 0) {
-          console.log('🔧 [API-KEY-SERVICE] Clés trouvées avec find():', allKeysForUser.map(k => ({
-            id: k.id,
-            name: k.name,
-            type: k.type,
-            table_name: k.table_name,
-            user_id: k.user_id,
-            is_active: k.is_active
-          })));
+          // console.log('🔧 [API-KEY-SERVICE] Clés trouvées avec find():', allKeysForUser.map(k => ({
+          //   id: k.id,
+          //   name: k.name,
+          //   type: k.type,
+          //   table_name: k.table_name,
+          //   user_id: k.user_id,
+          //   is_active: k.is_active
+          // })));
         }
       }
       
@@ -836,7 +836,7 @@ export class ApiKeyService {
         }
       };
       
-      console.log('🔧 [API-KEY-SERVICE] Résultat final:', result);
+      // console.log('🔧 [API-KEY-SERVICE] Résultat final:', result);
       return result;
     } catch (error) {
       console.error('🔧 [API-KEY-SERVICE] ❌ Erreur dans findAllByUser:', error);

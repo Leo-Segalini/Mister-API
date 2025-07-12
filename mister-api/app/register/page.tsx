@@ -13,7 +13,7 @@ import type { RegisterData } from '@/types';
 const clearAllSessionData = (): void => {
   if (typeof window === 'undefined') return;
   
-  console.log('🧹 [REGISTER] Nettoyage complet des données de session');
+  // // console.log('🧹 [REGISTER] Nettoyage complet des données de session');
   
   try {
     // Supprimer tous les cookies
@@ -40,7 +40,7 @@ const clearAllSessionData = (): void => {
       document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
     });
     
-    console.log('✅ [REGISTER] Nettoyage terminé avec succès');
+    // console.log('✅ [REGISTER] Nettoyage terminé avec succès');
   } catch (error) {
     console.error('❌ [REGISTER] Erreur lors du nettoyage:', error);
   }
@@ -78,7 +78,7 @@ export default function Register() {
 
   // Nettoyer les cookies au chargement de la page d'inscription
   useEffect(() => {
-    console.log('🧹 [REGISTER] Nettoyage des cookies au chargement de la page');
+    // console.log('🧹 [REGISTER] Nettoyage des cookies au chargement de la page');
     clearAllSessionData();
   }, []);
 
@@ -153,10 +153,10 @@ export default function Register() {
         conditions_generales_acceptees: formData.conditions_generales_acceptees
       };
 
-      console.log('🚀 Starting registration process...');
+      // console.log('🚀 Starting registration process...');
       await signup(registerData);
       
-      console.log('✅ Registration successful, redirecting to success page');
+      // console.log('✅ Registration successful, redirecting to success page');
       
       // Rediriger vers la page de succès avec l'email en paramètre
       router.push(`/register/success?email=${encodeURIComponent(formData.email)}`);

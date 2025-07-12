@@ -16,7 +16,7 @@ async function bootstrap() {
 
   // Middleware pour capturer le body brut des webhooks Stripe
   app.use('/api/v1/payments/webhook', (req: Request, res: Response, next: NextFunction) => {
-    console.log('🔧 Webhook middleware triggered for:', req.url);
+    // console.log('🔧 Webhook middleware triggered for:', req.url);
     let data = '';
     req.setEncoding('utf8');
     req.on('data', (chunk) => {
@@ -67,7 +67,7 @@ async function bootstrap() {
       if (isAllowed) {
         callback(null, true);
       } else {
-        console.log(`🚫 CORS bloqué pour l'origine: ${origin}`);
+        // console.log(`🚫 CORS bloqué pour l'origine: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
@@ -98,11 +98,11 @@ async function bootstrap() {
   const port = configService.get('API_PORT', 3000);
   await app.listen(port);
 
-  console.log(`🚀 Application démarrée sur http://localhost:${port}`);
+  // console.log(`🚀 Application démarrée sur http://localhost:${port}`);
   if (process.env.NODE_ENV === 'development') {
-    console.log(`📚 Documentation Swagger disponible sur http://localhost:${port}/api/v1`);
+    // console.log(`📚 Documentation Swagger disponible sur http://localhost:${port}/api/v1`);
   }
-  console.log(`🌍 Mode: ${configService.get('NODE_ENV', 'development')}`);
+  // console.log(`🌍 Mode: ${configService.get('NODE_ENV', 'development')}`);
 }
 
 bootstrap();
