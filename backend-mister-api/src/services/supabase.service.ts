@@ -241,7 +241,11 @@ export class SupabaseService {
             code_postal: registerDto.code_postal,
             ville: registerDto.ville,
             pays: registerDto.pays,
-            telephone: registerDto.telephone
+            telephone: registerDto.telephone,
+            // Ajouter les champs légaux dans les métadonnées
+            politique_confidentialite_acceptee: registerDto.politique_confidentialite_acceptee,
+            conditions_generales_acceptees: registerDto.conditions_generales_acceptees,
+            role: registerDto.role || 'user'
           }
         }
       });
@@ -252,7 +256,7 @@ export class SupabaseService {
 
       // Le profil utilisateur sera créé automatiquement par la fonction trigger handle_new_user
       // qui extrait les données de raw_user_meta_data et les insère dans public.users
-      // Pas besoin de créer manuellement le profil car le trigger s'en charge
+      // Les champs légaux seront maintenant inclus dans les métadonnées et transmis au trigger
 
       return {
         user: data.user,
