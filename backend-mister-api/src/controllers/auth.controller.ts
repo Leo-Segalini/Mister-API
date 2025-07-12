@@ -269,23 +269,15 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(SupabaseAuthGuard)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Récupérer le profil utilisateur',
-    description: 'Récupère les informations du profil de l\'utilisateur connecté'
+    description: 'Récupère les informations du profil utilisateur connecté'
   })
-  @ApiBearerAuth()
   @SwaggerApiResponse({
     status: 200,
-    description: 'Profil récupéré avec succès',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'Profil récupéré avec succès' },
-        data: { type: 'object' }
-      }
-    }
+    description: 'Profil utilisateur récupéré avec succès'
   })
   @SwaggerApiResponse({
     status: 401,
@@ -296,15 +288,71 @@ export class AuthController {
       if (!req.user?.id) {
         throw new UnauthorizedException('Utilisateur non authentifié');
       }
+
+      this.logger.log(`👤 Récupération du profil pour: ${req.user?.email}`);
       
-      // req.user contient déjà toutes les informations du profil grâce au SupabaseAuthGuard
+      const user = await this.supabaseService.getUserProfile(req.user.id);
+      
       return {
         success: true,
         message: 'Profil récupéré avec succès',
-        data: req.user
+        data: user
       };
     } catch (error) {
+      this.logger.error('Erreur lors de la récupération du profil:', error);
       throw new UnauthorizedException('Erreur lors de la récupération du profil');
+    }
+  }
+
+  @Get('check-admin-role')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Vérifier le rôle admin',
+    description: 'Vérifie le rôle de l\'utilisateur connecté dans la table public.users'
+  })
+  @SwaggerApiResponse({
+    status: 200,
+    description: 'Rôle vérifié avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Rôle vérifié avec succès' },
+        data: {
+          type: 'object',
+          properties: {
+            role: { type: 'string', example: 'admin' }
+          }
+        }
+      }
+    }
+  })
+  @SwaggerApiResponse({
+    status: 401,
+    description: 'Non authentifié'
+  })
+  async checkAdminRole(@Req() req: AuthenticatedRequest): Promise<ApiResponse<any>> {
+    try {
+      if (!req.user?.id) {
+        throw new UnauthorizedException('Utilisateur non authentifié');
+      }
+
+      this.logger.log(`🔍 Vérification du rôle pour: ${req.user?.email}`);
+      
+      // Utiliser la méthode existante du service pour récupérer le rôle
+      const role = await this.supabaseService.getUserRole(req.user.id);
+      
+      this.logger.log(`🔍 Résultat de la vérification pour ${req.user?.email}: role=${role}`);
+      
+      return {
+        success: true,
+        message: 'Rôle vérifié avec succès',
+        data: { role }
+      };
+    } catch (error) {
+      this.logger.error('Erreur lors de la vérification du rôle:', error);
+      throw new UnauthorizedException('Erreur lors de la vérification du rôle');
     }
   }
 

@@ -94,15 +94,15 @@ export default function RootLayout({
         <AuthProvider>
           <ToastProvider>
             <CookieProvider>
-              <div className="min-h-screen flex flex-col">
-                <Header />
-                <main className="flex-1 pt-16">
-                  {children}
-                </main>
-                <Footer />
+            <div className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1 pt-16">
+                {children}
+              </main>
+              <Footer />
                 <CookieBannerWrapper />
                 <GoogleAnalytics />
-              </div>
+            </div>
             </CookieProvider>
           </ToastProvider>
         </AuthProvider>
