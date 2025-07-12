@@ -429,29 +429,37 @@ export class AuthController {
 
       this.logger.log(`👤 Récupération des informations complètes pour: ${req.user?.email}`);
       
-      // Récupérer les informations complètes de l'utilisateur
-      const userCompleteInfo = await this.supabaseService.getUserCompleteInfo(req.user.id);
+      // Récupérer le profil utilisateur depuis public.users
+      let userProfile = null;
+      try {
+        userProfile = await this.supabaseService.getUserProfile(req.user.id);
+      } catch (profileError) {
+        this.logger.warn(`Profil utilisateur non trouvé pour ${req.user.id}:`, profileError.message);
+      }
       
-      // Récupérer le statut premium
+      // Récupérer le statut premium et le rôle
       const { role, isPremium } = await this.supabaseService.getUserRoleAndPremium(req.user.id);
       
-      // Combiner les informations
+      // Combiner les informations de base (auth) avec le profil
       const userData = {
-        ...userCompleteInfo,
-        role: role,
-        is_premium: isPremium,
         // Informations de base de l'authentification
-        email_confirmed_at: userCompleteInfo.email_confirmed_at,
-        created_at: userCompleteInfo.created_at,
-        updated_at: userCompleteInfo.updated_at,
+        id: req.user.id,
+        email: req.user.email,
+        created_at: req.user.created_at,
+        updated_at: req.user.updated_at,
+        
         // Informations du profil (si disponible)
-        ...(userCompleteInfo.profile || {})
+        ...(userProfile || {}),
+        
+        // Statut premium et rôle
+        role: role,
+        is_premium: isPremium
       };
       
       this.logger.log(`✅ Informations utilisateur récupérées pour ${req.user?.email}:`, {
         role: userData.role,
         isPremium: userData.is_premium,
-        hasProfile: !!userCompleteInfo.profile
+        hasProfile: !!userProfile
       });
       
       return {
