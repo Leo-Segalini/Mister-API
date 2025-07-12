@@ -41,12 +41,35 @@ async function bootstrap() {
   // Cookies
   app.use(cookieParser(configService.get('COOKIE_SECRET')));
 
-  // CORS - Configuration plus permissive pour résoudre les problèmes
+  // CORS - Configuration optimisée pour les cookies cross-origin
   console.log('🔧 Configuration CORS...');
   
+  const allowedOrigins = [
+    'https://mister-api.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://localhost:3000',
+    'https://localhost:3001',
+  ];
+  
   app.enableCors({
-    origin: true, // Autorise toutes les origines temporairement
-    credentials: true,
+    origin: (origin, callback) => {
+      // Autoriser les requêtes sans origine (par exemple, les apps mobiles)
+      if (!origin) return callback(null, true);
+      
+      // Autoriser les origines spécifiques
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Pour le développement, autoriser toutes les origines localhost
+      if (process.env.NODE_ENV === 'development' && origin.includes('localhost')) {
+        return callback(null, true);
+      }
+      
+      return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true, // Essentiel pour les cookies
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: [
       'Content-Type', 
@@ -58,9 +81,10 @@ async function bootstrap() {
       'X-Requested-With',
       'Access-Control-Allow-Origin',
       'Access-Control-Allow-Headers',
-      'Access-Control-Allow-Methods'
+      'Access-Control-Allow-Methods',
+      'X-Refresh-Token'
     ],
-    exposedHeaders: ['Set-Cookie', 'Authorization'],
+    exposedHeaders: ['Set-Cookie', 'Authorization', 'X-Refresh-Token'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
   });

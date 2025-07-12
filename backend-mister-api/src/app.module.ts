@@ -49,6 +49,7 @@ import { AdminController } from './controllers/admin.controller';
 import { PaymentController } from './controllers/payment.controller';
 import { WebhookController } from './controllers/webhook.controller';
 import { NewsletterController } from './controllers/newsletter.controller';
+import { CookieDiagnosticController } from './controllers/cookie-diagnostic.controller';
 
 // Middleware
 import { SupabaseAuthMiddleware } from './middleware/supabase-auth.middleware';
@@ -157,6 +158,7 @@ import { SupabaseAuthMiddleware } from './middleware/supabase-auth.middleware';
     PaymentController, 
     WebhookController,
     NewsletterController,
+    CookieDiagnosticController,
   ],
   providers: [
     AppService,
@@ -214,6 +216,7 @@ export class AppModule implements NestModule {
         '/', // Page d'accueil
         'docs/*path', // Documentation
         'stats/*path', // Statistiques publiques
+        'cookie-diagnostic/*path', // Exclure les diagnostics de cookies
       )
       .forRoutes('*');
     // console.log('✅ Middleware configured');

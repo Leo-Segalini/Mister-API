@@ -10,9 +10,23 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
 
   async use(req: Request, res: Response, next: NextFunction) {
     try {
-      // Récupération du token depuis les cookies HTTPS
-      const token = req.cookies['access_token'] || req.cookies['sb-access-token'];
-      const refreshToken = req.cookies['refresh_token'];
+      // Récupération du token depuis les cookies HTTPS ou headers Authorization
+      let token = req.cookies['access_token'] || req.cookies['sb-access-token'];
+      let refreshToken = req.cookies['refresh_token'];
+      
+      // Fallback sur les headers si les cookies ne sont pas disponibles
+      if (!token && req.headers.authorization) {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7);
+          this.logger.debug('🔄 Token récupéré depuis Authorization header (fallback)');
+        }
+      }
+      
+      if (!refreshToken && req.headers['x-refresh-token']) {
+        refreshToken = req.headers['x-refresh-token'] as string;
+        this.logger.debug('🔄 Refresh token récupéré depuis X-Refresh-Token header (fallback)');
+      }
       
       this.logger.debug(`🔍 Checking authentication for ${req.method} ${req.path}`);
       this.logger.debug(`🔗 Full URL: ${req.originalUrl}`);

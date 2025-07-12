@@ -200,9 +200,28 @@ export class AuthController {
           maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
         };
 
-        res.cookie('access_token', session.access_token, cookieOptions);
-        res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
-        res.cookie('refresh_token', session.refresh_token, refreshCookieOptions); // Refresh token
+        // Configuration spéciale pour cross-origin avec différents domaines
+        const crossOriginCookieOptions = {
+          ...cookieOptions,
+          domain: undefined, // Pas de domaine spécifique pour éviter les problèmes cross-origin
+          sameSite: 'none' as const,
+          secure: true, // Obligatoire avec sameSite='none'
+        };
+
+        const refreshCrossOriginOptions = {
+          ...refreshCookieOptions,
+          domain: undefined,
+          sameSite: 'none' as const,
+          secure: true,
+        };
+
+        res.cookie('access_token', session.access_token, crossOriginCookieOptions);
+        res.cookie('sb-access-token', session.access_token, crossOriginCookieOptions); // Cookie alternatif
+        res.cookie('refresh_token', session.refresh_token, refreshCrossOriginOptions); // Refresh token
+        
+        // Ajout d'un header Authorization comme fallback
+        res.header('Authorization', `Bearer ${session.access_token}`);
+        res.header('X-Refresh-Token', session.refresh_token);
         
         this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
         this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
