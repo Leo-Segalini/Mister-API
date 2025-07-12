@@ -29,6 +29,7 @@ export default function ProtectedRoute({
   useEffect(() => {
     // Attendre que l'authentification soit initialisée
     if (isLoading) {
+      console.log('⏳ ProtectedRoute: En attente de l\'initialisation de l\'authentification...');
       return;
     }
 
@@ -39,6 +40,14 @@ export default function ProtectedRoute({
     const currentPath = window.location.pathname;
     const publicPaths = ['/login', '/register', '/register/success', '/', '/docs', '/pricing', '/apis', '/contact'];
     const isPublicPath = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
+
+    console.log(`🔍 ProtectedRoute: Vérification pour ${currentPath}`, {
+      isAuthenticated,
+      isAdmin,
+      requireAuth,
+      requireAdmin,
+      isPublicPath
+    });
 
     // Gestion des redirections
     if (requireAuth && !isAuthenticated) {

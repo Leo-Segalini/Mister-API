@@ -107,9 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(userData);
         console.log('✅ Connexion réussie:', userData.email);
         
-        // Forcer la redirection immédiate
-        console.log('🔄 Redirection forcée vers dashboard...');
-        window.location.href = '/dashboard';
+        // Utiliser router.push au lieu de window.location.href pour éviter le rechargement
+        console.log('🔄 Redirection vers dashboard...');
+        router.push('/dashboard');
       } else {
         throw new Error(response.message || 'Erreur de connexion');
       }
@@ -198,19 +198,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Valider la session si on a des tokens
         if (hasValidTokens()) {
+          console.log('🔑 Tokens trouvés, validation de session...');
           await validateSession();
         } else {
           console.log('❌ Aucun token, utilisateur non connecté');
+          // Si on est sur une page protégée sans tokens, rediriger vers login
+          if (!isPublicPage) {
+            console.log('🚫 Page protégée sans tokens, redirection vers login');
+            router.push('/login');
+          }
         }
       } catch (error) {
         console.error('💥 Erreur d\'initialisation:', error);
+        // En cas d'erreur, rediriger vers login si on est sur une page protégée
+        const currentPath = window.location.pathname;
+        const publicPaths = ['/', '/login', '/register', '/register/success', '/docs', '/pricing', '/apis', '/contact'];
+        const isPublicPage = publicPaths.some(path => currentPath === path || currentPath.startsWith(path));
+        
+        if (!isPublicPage) {
+          console.log('🚫 Erreur d\'initialisation sur page protégée, redirection vers login');
+          router.push('/login');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     initAuth();
-  }, [validateSession]);
+  }, [validateSession, router]);
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin';
