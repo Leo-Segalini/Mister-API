@@ -78,13 +78,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Nettoyer complètement les données de session
       clearAllSessionData();
       
-      // Nettoyer aussi le localStorage
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        console.log('🧹 localStorage cleared');
-      }
-      
       // Forcer la redirection vers la page de connexion avec rechargement complet
       if (typeof window !== 'undefined') {
         // console.log('🚪 Redirecting to login page with full reload...');
@@ -283,13 +276,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('✅ Signin successful:', response);
       
       if (response.success && response.data.user) {
-        // Stocker le token dans localStorage pour un accès facile
-        if (response.data.session?.access_token && typeof window !== 'undefined') {
-          localStorage.setItem('access_token', response.data.session.access_token);
-          localStorage.setItem('refresh_token', response.data.session.refresh_token || '');
-          console.log('💾 Tokens stored in localStorage');
-        }
-        
         // Utiliser directement les données d'authentification (profil mis en commentaire)
         console.log('📋 Using auth data directly (profile fetch commented out)...');
         

@@ -270,7 +270,7 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(SupabaseAuthGuard)
+  @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Récupérer le profil utilisateur',
