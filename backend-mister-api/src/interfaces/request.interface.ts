@@ -24,6 +24,7 @@ export interface AuthenticatedRequest extends Request {
   headers: Request['headers'] & {
     authorization?: string;
   };
+  cookies: { [key: string]: string };
 }
 
 export interface RawBodyRequest<T> extends Request {
