@@ -26,14 +26,34 @@ export class SupabaseService {
   }
 
   /**
-   * Vérifie un token d'authentification
+   * Vérifie un token d'authentification avec diagnostic avancé
    */
   async verifyToken(token: string): Promise<User | null> {
     try {
+      // Diagnostic préalable du token
+      const diagnostic = await this.diagnoseToken(token);
+      
+      if (!diagnostic.isValid) {
+        this.logger.error('🔍 Token invalide après diagnostic:', diagnostic.error);
+        this.logger.error('📋 Recommandations:', diagnostic.recommendations);
+        return null;
+      }
+
       const { data: { user }, error } = await this.supabase.auth.getUser(token);
       
       if (error) {
         this.logger.error('Erreur lors de la vérification du token:', error);
+        
+        // Si le token est expiré, log les informations de diagnostic
+        if (error.message.includes('expired') || error.message.includes('invalid')) {
+          this.logger.error('🔍 Informations de diagnostic du token expiré:');
+          this.logger.error(`   - Temps restant calculé: ${diagnostic.timeUntilExpiry} secondes`);
+          this.logger.error(`   - Décalage d'horloge: ${diagnostic.clockDrift} secondes`);
+          this.logger.error(`   - Token émis à: ${diagnostic.tokenInfo?.iat ? new Date(diagnostic.tokenInfo.iat * 1000).toISOString() : 'N/A'}`);
+          this.logger.error(`   - Token expire à: ${diagnostic.tokenInfo?.exp ? new Date(diagnostic.tokenInfo.exp * 1000).toISOString() : 'N/A'}`);
+          this.logger.error(`   - Heure serveur: ${new Date().toISOString()}`);
+        }
+        
         return null;
       }
 
@@ -41,6 +61,130 @@ export class SupabaseService {
     } catch (error) {
       this.logger.error('Erreur lors de la vérification du token:', error);
       return null;
+    }
+  }
+
+  /**
+   * Diagnostic complet d'un token JWT
+   */
+  async diagnoseToken(token: string): Promise<{
+    isValid: boolean;
+    error?: string;
+    tokenInfo?: any;
+    clockDrift?: number;
+    timeUntilExpiry?: number;
+    recommendations?: string[];
+  }> {
+    try {
+      // Décoder le token sans vérification pour examiner les claims
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) {
+        return {
+          isValid: false,
+          error: 'Token JWT malformé',
+          recommendations: ['Vérifier la génération du token']
+        };
+      }
+
+      const payload = JSON.parse(atob(tokenParts[1]));
+      const now = Math.floor(Date.now() / 1000);
+      const serverTime = now;
+      
+      this.logger.debug('🔍 Diagnostic du token JWT:');
+      this.logger.debug(`   - Timestamp serveur actuel: ${serverTime}`);
+      this.logger.debug(`   - Token émis à (iat): ${payload.iat}`);
+      this.logger.debug(`   - Token expire à (exp): ${payload.exp}`);
+      this.logger.debug(`   - Temps restant: ${payload.exp - serverTime} secondes`);
+
+      // Calculer le décalage d'horloge potentiel
+      const clockDrift = payload.iat - serverTime;
+      const timeUntilExpiry = payload.exp - serverTime;
+
+      const recommendations: string[] = [];
+      
+      // Analyser les problèmes potentiels
+      if (Math.abs(clockDrift) > 60) {
+        recommendations.push('Décalage d\'horloge détecté - vérifier la synchronisation NTP');
+      }
+      
+      if (timeUntilExpiry <= 0) {
+        recommendations.push('Token expiré - utiliser le refresh token pour renouveler');
+      }
+      
+      if (timeUntilExpiry > 0 && timeUntilExpiry < 300) {
+        recommendations.push('Token expire bientôt - prévoir le renouvellement');
+      }
+
+      return {
+        isValid: timeUntilExpiry > 0, // Token valide si pas encore expiré
+        error: timeUntilExpiry <= 0 ? 'Token expiré' : undefined,
+        tokenInfo: {
+          iat: payload.iat,
+          exp: payload.exp,
+          sub: payload.sub,
+          email: payload.email,
+          aud: payload.aud,
+          iss: payload.iss
+        },
+        clockDrift,
+        timeUntilExpiry,
+        recommendations
+      };
+    } catch (error) {
+      this.logger.error('Erreur lors du diagnostic du token:', error);
+      return {
+        isValid: false,
+        error: `Erreur de diagnostic: ${error.message}`,
+        recommendations: ['Vérifier le format du token et sa génération']
+      };
+    }
+  }
+
+  /**
+   * Rafraîchit automatiquement un token si nécessaire
+   */
+  async refreshTokenIfNeeded(accessToken: string, refreshToken: string): Promise<{
+    newAccessToken?: string;
+    newRefreshToken?: string;
+    refreshed: boolean;
+    error?: string;
+  }> {
+    try {
+      // Diagnostiquer le token actuel
+      const diagnostic = await this.diagnoseToken(accessToken);
+      
+      // Si le token est encore valide et n'expire pas dans les 5 minutes, pas besoin de refresh
+      if (diagnostic.isValid && diagnostic.timeUntilExpiry !== undefined && diagnostic.timeUntilExpiry > 300) {
+        return { refreshed: false };
+      }
+
+      this.logger.log('🔄 Tentative de refresh du token expiré/expirant');
+      
+      // Utiliser le refresh token pour obtenir un nouveau access token
+      const { data, error } = await this.supabase.auth.refreshSession({
+        refresh_token: refreshToken
+      });
+
+      if (error) {
+        this.logger.error('❌ Erreur lors du refresh du token:', error);
+        return {
+          refreshed: false,
+          error: error.message
+        };
+      }
+
+      this.logger.log('✅ Token rafraîchi avec succès');
+      return {
+        newAccessToken: data.session?.access_token,
+        newRefreshToken: data.session?.refresh_token,
+        refreshed: true
+      };
+    } catch (error) {
+      this.logger.error('Erreur lors du refresh du token:', error);
+      return {
+        refreshed: false,
+        error: error.message
+      };
     }
   }
 

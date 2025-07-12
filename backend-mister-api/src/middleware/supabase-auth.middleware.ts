@@ -12,6 +12,7 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
     try {
       // Récupération du token depuis les cookies HTTPS
       const token = req.cookies['access_token'] || req.cookies['sb-access-token'];
+      const refreshToken = req.cookies['refresh_token'];
       
       this.logger.debug(`🔍 Checking authentication for ${req.method} ${req.path}`);
       this.logger.debug(`🔗 Full URL: ${req.originalUrl}`);
@@ -34,10 +35,43 @@ export class SupabaseAuthMiddleware implements NestMiddleware {
       this.logger.debug('🔐 Token found, verifying with Supabase...');
 
       // Vérification du token avec Supabase
-      const user = await this.supabaseService.verifyToken(token);
+      let user = await this.supabaseService.verifyToken(token);
+      let currentToken = token;
+      
+      // Si le token est invalide et qu'on a un refresh token, essayer de le rafraîchir
+      if (!user && refreshToken) {
+        this.logger.debug('🔄 Token invalide, tentative de refresh...');
+        
+        const refreshResult = await this.supabaseService.refreshTokenIfNeeded(token, refreshToken);
+        
+        if (refreshResult.refreshed && refreshResult.newAccessToken) {
+          this.logger.debug('✅ Token rafraîchi avec succès, nouvelle tentative de vérification');
+          
+          // Mettre à jour les cookies avec le nouveau token
+          const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none' as const,
+            maxAge: 4 * 60 * 60 * 1000, // 4 heures
+            path: '/',
+            domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
+          };
+          
+          res.cookie('access_token', refreshResult.newAccessToken, cookieOptions);
+          res.cookie('sb-access-token', refreshResult.newAccessToken, cookieOptions);
+          
+          if (refreshResult.newRefreshToken) {
+            res.cookie('refresh_token', refreshResult.newRefreshToken, cookieOptions);
+          }
+          
+          // Vérifier le nouveau token
+          user = await this.supabaseService.verifyToken(refreshResult.newAccessToken);
+          currentToken = refreshResult.newAccessToken;
+        }
+      }
       
       if (!user) {
-        this.logger.debug('❌ Token verification failed');
+        this.logger.debug('❌ Token verification failed après tentative de refresh');
         // Token invalide, on continue mais sans authentification
         req['user'] = null;
         req['userProfile'] = null;

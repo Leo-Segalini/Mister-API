@@ -194,8 +194,15 @@ export class AuthController {
           domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined, // Domaine pour cross-origin
         };
 
+        // Durée plus longue pour le refresh token (7 jours)
+        const refreshCookieOptions = {
+          ...cookieOptions,
+          maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+        };
+
         res.cookie('access_token', session.access_token, cookieOptions);
         res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
+        res.cookie('refresh_token', session.refresh_token, refreshCookieOptions); // Refresh token
         
         this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
         this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
@@ -262,10 +269,12 @@ export class AuthController {
       // Supprimer les cookies
       res.clearCookie('access_token');
       res.clearCookie('sb-access-token');
+      res.clearCookie('refresh_token');
     } catch (error) {
       // Même en cas d'erreur, on supprime les cookies
       res.clearCookie('access_token');
       res.clearCookie('sb-access-token');
+      res.clearCookie('refresh_token');
     }
   }
 
@@ -886,6 +895,75 @@ export class AuthController {
         throw error;
       }
       throw new BadRequestException('Erreur lors du changement de mot de passe');
+    }
+  }
+
+  @Get('diagnose-token')
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Diagnostic du token JWT',
+    description: 'Effectue un diagnostic détaillé du token JWT pour identifier les problèmes'
+  })
+  @ApiBearerAuth()
+  @SwaggerApiResponse({
+    status: 200,
+    description: 'Diagnostic effectué avec succès',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: { type: 'string', example: 'Diagnostic effectué avec succès' },
+        data: { type: 'object' }
+      }
+    }
+  })
+  @SwaggerApiResponse({
+    status: 401,
+    description: 'Non authentifié'
+  })
+  async diagnoseToken(@Req() req: AuthenticatedRequest): Promise<ApiResponse<any>> {
+    try {
+      // Récupérer le token depuis les cookies
+      const token = req.cookies['access_token'] || req.cookies['sb-access-token'];
+      
+      if (!token) {
+        return {
+          success: false,
+          message: 'Aucun token trouvé dans les cookies',
+          data: { error: 'Token non disponible' }
+        };
+      }
+
+      // Effectuer le diagnostic
+      const diagnostic = await this.supabaseService.diagnoseToken(token);
+      
+      // Informations système supplémentaires
+      const systemInfo = {
+        serverTime: new Date().toISOString(),
+        serverTimestamp: Math.floor(Date.now() / 1000),
+        nodeEnv: process.env.NODE_ENV,
+        userAgent: req.headers['user-agent'],
+        origin: req.headers.origin,
+        referer: req.headers.referer,
+        cookiesAvailable: Object.keys(req.cookies).join(', ')
+      };
+
+      return {
+        success: true,
+        message: 'Diagnostic effectué avec succès',
+        data: {
+          diagnostic,
+          systemInfo,
+          recommendations: diagnostic.recommendations || []
+        }
+      };
+    } catch (error) {
+      this.logger.error('Erreur lors du diagnostic du token:', error);
+      return {
+        success: false,
+        message: 'Erreur lors du diagnostic',
+        data: { error: error.message }
+      };
     }
   }
 } 

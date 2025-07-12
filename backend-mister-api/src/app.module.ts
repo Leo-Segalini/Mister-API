@@ -33,6 +33,7 @@ import { WebhookService } from './services/webhook.service';
 import { PaymentService } from './services/payment.service';
 import { SubscriptionService } from './services/subscription.service';
 import { NewsletterService } from './services/newsletter.service';
+import { TokenDiagnosticService } from './services/token-diagnostic.service';
 
 // Contrôleurs
 import { AppController } from './app.controller';
@@ -173,6 +174,7 @@ import { SupabaseAuthMiddleware } from './middleware/supabase-auth.middleware';
     PaymentService,
     SubscriptionService,
     NewsletterService,
+    TokenDiagnosticService,
   ],
   exports: [SupabaseService, ApiKeyService, NewsletterService],
 })
