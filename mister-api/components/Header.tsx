@@ -90,7 +90,7 @@ export default function Header() {
             </div>
           
           {/* Navigation centrée */}
-          <nav className="hidden md:flex items-center space-x-1 absolute left-1/2 transform -translate-x-1/2">
+          <nav className="hidden lg:flex items-center space-x-1 absolute left-1/2 transform -translate-x-1/2">
             {/* Navigation publique */}
             {publicNavItems.map((item, index) => (
               <motion.div
@@ -113,7 +113,7 @@ export default function Header() {
           {/* Menu utilisateur */}
               <div className="flex items-center space-x-4">
             {/* Statut utilisateur avec animations */}
-            <div className="hidden md:flex items-center space-x-2">
+            <div className="hidden lg:flex items-center space-x-2">
               {user?.is_premium && (
                 <motion.div
                   initial={{ scale: 0 }}
@@ -144,7 +144,7 @@ export default function Header() {
 
             {/* Menu utilisateur desktop */}
             {user ? (
-              <div className="hidden md:flex items-center space-x-2">
+              <div className="hidden lg:flex items-center space-x-2">
                 {/* Avatar et nom utilisateur */}
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -226,7 +226,7 @@ export default function Header() {
                 </motion.div>
               </div>
             ) : (
-              <div className="hidden md:flex items-center space-x-4">
+              <div className="hidden lg:flex items-center space-x-4">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -259,7 +259,7 @@ export default function Header() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={toggleMobileMenu}
-              className="md:hidden p-2 text-gray-400 hover:text-green-400 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+              className="lg:hidden p-2 text-gray-400 hover:text-green-400 hover:bg-gray-800/50 rounded-lg transition-all duration-200"
             >
               <AnimatePresence mode="wait">
                 {isMobileMenuOpen ? (
@@ -293,7 +293,7 @@ export default function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-              className="md:hidden py-4 border-t border-green-400 overflow-hidden"
+              className="lg:hidden py-4 border-t border-green-400 overflow-hidden"
             >
               <nav className="flex flex-col space-y-2">
                 {/* Navigation publique */}

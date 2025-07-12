@@ -69,7 +69,7 @@ export default function Contact() {
           >
             <h2 className="text-2xl font-bold mb-6">Informations de contact</h2>
             
-            <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="flex items-start space-x-4">
                 <Mail className="h-6 w-6 text-green-400 mt-1" />
                 <div>
