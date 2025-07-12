@@ -13,6 +13,7 @@ interface AuthContextType {
   signout: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isPremium: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -98,14 +99,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response: AuthResponse = await apiService.signin({ email, password });
       
       if (response.success && response.data.user) {
+        // Récupérer les informations complètes de l'utilisateur après connexion
+        const completeUserData = await apiService.getProfile();
+        
         const userData = {
-          ...response.data.user,
-          role: response.data.user.role || 'user'
+          ...completeUserData,
+          role: completeUserData.role || 'user',
+          isPremium: completeUserData.is_premium || false
         };
         
-        // Mettre à jour immédiatement l'état utilisateur
+        // Mettre à jour immédiatement l'état utilisateur avec les informations complètes
         setUser(userData);
-        console.log('✅ Connexion réussie:', userData.email);
+        console.log('✅ Connexion réussie:', userData.email, {
+          role: userData.role,
+          isPremium: userData.isPremium
+        });
         
         // Utiliser router.push au lieu de window.location.href pour éviter le rechargement
         console.log('🔄 Redirection vers dashboard...');
@@ -150,17 +158,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
       
-      // Récupérer le profil utilisateur
+      // Récupérer le profil utilisateur complet (incluant is_premium)
       const userData = await apiService.getProfile();
       
       if (userData) {
         const completeUserData = {
           ...userData,
-          role: userData.role || 'user'
+          role: userData.role || 'user',
+          isPremium: userData.is_premium || false
         };
         
         setUser(completeUserData);
-        console.log('✅ Session valide:', userData.email);
+        console.log('✅ Session valide:', userData.email, {
+          role: completeUserData.role,
+          isPremium: completeUserData.isPremium
+        });
         return true;
       }
       
@@ -229,6 +241,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin';
+  const isPremium = user?.is_premium || false;
 
   const value: AuthContextType = {
     user,
@@ -237,7 +250,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     signout,
     isAuthenticated,
-    isAdmin
+    isAdmin,
+    isPremium
   };
 
   return (

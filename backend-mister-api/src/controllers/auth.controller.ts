@@ -388,8 +388,8 @@ export class AuthController {
   @Get('me')
   @UseGuards(SupabaseAuthGuard)
   @ApiOperation({
-    summary: 'Récupérer les informations de l\'utilisateur connecté',
-    description: 'Récupère les informations de base de l\'utilisateur connecté'
+    summary: 'Récupérer les informations complètes de l\'utilisateur connecté',
+    description: 'Récupère les informations complètes de l\'utilisateur connecté incluant le statut premium et le profil'
   })
   @ApiBearerAuth()
   @SwaggerApiResponse({
@@ -400,28 +400,20 @@ export class AuthController {
       properties: {
         success: { type: 'boolean', example: true },
         message: { type: 'string', example: 'Informations utilisateur récupérées avec succès' },
-        data: { type: 'object' }
-      }
-    }
-  })
-  @SwaggerApiResponse({
-    status: 401,
-    description: 'Non authentifié'
-  })
-  @Get('me')
-  @ApiOperation({
-    summary: 'Récupérer les informations de l\'utilisateur connecté',
-    description: 'Récupère les informations de l\'utilisateur actuellement authentifié'
-  })
-  @SwaggerApiResponse({
-    status: 200,
-    description: 'Informations utilisateur récupérées',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean', example: true },
-        message: { type: 'string', example: 'Informations utilisateur récupérées avec succès' },
-        data: { type: 'object' }
+        data: { 
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+            email: { type: 'string' },
+            nom: { type: 'string' },
+            prenom: { type: 'string' },
+            is_premium: { type: 'boolean' },
+            premium_expires_at: { type: 'string' },
+            role: { type: 'string' },
+            created_at: { type: 'string' },
+            updated_at: { type: 'string' }
+          }
+        }
       }
     }
   })
@@ -431,12 +423,44 @@ export class AuthController {
   })
   async getMe(@Req() req: AuthenticatedRequest): Promise<ApiResponse<any>> {
     try {
+      if (!req.user?.id) {
+        throw new UnauthorizedException('Utilisateur non authentifié');
+      }
+
+      this.logger.log(`👤 Récupération des informations complètes pour: ${req.user?.email}`);
+      
+      // Récupérer les informations complètes de l'utilisateur
+      const userCompleteInfo = await this.supabaseService.getUserCompleteInfo(req.user.id);
+      
+      // Récupérer le statut premium
+      const { role, isPremium } = await this.supabaseService.getUserRoleAndPremium(req.user.id);
+      
+      // Combiner les informations
+      const userData = {
+        ...userCompleteInfo,
+        role: role,
+        is_premium: isPremium,
+        // Informations de base de l'authentification
+        email_confirmed_at: userCompleteInfo.email_confirmed_at,
+        created_at: userCompleteInfo.created_at,
+        updated_at: userCompleteInfo.updated_at,
+        // Informations du profil (si disponible)
+        ...(userCompleteInfo.profile || {})
+      };
+      
+      this.logger.log(`✅ Informations utilisateur récupérées pour ${req.user?.email}:`, {
+        role: userData.role,
+        isPremium: userData.is_premium,
+        hasProfile: !!userCompleteInfo.profile
+      });
+      
       return {
         success: true,
         message: 'Informations utilisateur récupérées avec succès',
-        data: req.user
+        data: userData
       };
     } catch (error) {
+      this.logger.error('Erreur lors de la récupération des informations utilisateur:', error);
       throw new UnauthorizedException('Erreur lors de la récupération des informations utilisateur');
     }
   }
