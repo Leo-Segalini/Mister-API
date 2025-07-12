@@ -41,53 +41,44 @@ async function bootstrap() {
   // Cookies
   app.use(cookieParser(configService.get('COOKIE_SECRET')));
 
-  // CORS
-  const corsOrigins = [
-    'http://localhost:3000',
-    'https://mister-api.vercel.app',
-    'https://mister-fxsm9xtz9-leo-segalini-web-developper.vercel.app',
-    'https://*.vercel.app', // Autorise tous les sous-domaines Vercel
-  ];
+  // CORS - Configuration plus permissive pour résoudre les problèmes
+  console.log('🔧 Configuration CORS...');
   
   app.enableCors({
-    origin: (origin, callback) => {
-      // Autoriser les requêtes sans origin (comme les appels API directs)
-      if (!origin) {
-        console.log('🌐 CORS: Requête sans origin autorisée');
-        return callback(null, true);
-      }
-      
-      console.log(`🌐 CORS: Vérification de l'origine: ${origin}`);
-      
-      // Vérifier si l'origine est dans la liste autorisée
-      const isAllowed = corsOrigins.some(allowedOrigin => {
-        if (allowedOrigin.includes('*')) {
-          // Gestion des wildcards
-          const pattern = allowedOrigin.replace('*', '.*');
-          const regex = new RegExp(pattern);
-          const matches = regex.test(origin);
-          console.log(`🌐 CORS: Pattern ${pattern} pour ${origin}: ${matches}`);
-          return matches;
-        }
-        const matches = allowedOrigin === origin;
-        console.log(`🌐 CORS: Exact match ${allowedOrigin} === ${origin}: ${matches}`);
-        return matches;
-      });
-      
-      if (isAllowed) {
-        console.log(`✅ CORS: Origine ${origin} autorisée`);
-        callback(null, true);
-      } else {
-        console.log(`🚫 CORS: Origine ${origin} bloquée`);
-        callback(new Error(`Origin ${origin} not allowed by CORS`));
-      }
-    },
+    origin: true, // Autorise toutes les origines temporairement
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key', 'Cookie', 'Origin', 'Accept'],
-    exposedHeaders: ['Set-Cookie'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'x-api-key', 
+      'Cookie', 
+      'Origin', 
+      'Accept',
+      'X-Requested-With',
+      'Access-Control-Allow-Origin',
+      'Access-Control-Allow-Headers',
+      'Access-Control-Allow-Methods'
+    ],
+    exposedHeaders: ['Set-Cookie', 'Authorization'],
     preflightContinue: false,
     optionsSuccessStatus: 204,
+  });
+  
+  // Middleware CORS supplémentaire pour les requêtes OPTIONS
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key, Cookie');
+    
+    if (req.method === 'OPTIONS') {
+      console.log('🔧 OPTIONS request handled');
+      res.sendStatus(204);
+      return;
+    }
+    
+    next();
   });
 
   // Helmet pour la sécurité

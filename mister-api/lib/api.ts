@@ -40,7 +40,7 @@ class ApiService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mister-api.onrender.com';
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
     // console.log('🚀 ApiService initialized with baseUrl:', this.baseUrl);
   }
 
