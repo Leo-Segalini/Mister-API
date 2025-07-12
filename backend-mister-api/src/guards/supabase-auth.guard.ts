@@ -8,49 +8,27 @@ export class SupabaseAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const response = context.switchToHttp().getResponse();
-    const { accessToken, refreshToken } = this.extractTokensFromRequest(request);
+    const token = this.extractTokenFromRequest(request);
 
-    if (!accessToken) {
+    if (!token) {
       throw new UnauthorizedException('Token d\'authentification manquant');
     }
 
     try {
-      // Vérifier et rafraîchir automatiquement le token si nécessaire
-      const { user, newTokens, needsReauth } = await this.supabaseService.verifyAndRefreshToken(accessToken, refreshToken);
+      // Vérifier le token avec Supabase Auth
+      const authUser = await this.supabaseService.verifyToken(token);
       
-      if (needsReauth) {
-        throw new UnauthorizedException('Session expirée, veuillez vous reconnecter');
-      }
-
-      if (!user) {
+      if (!authUser) {
         throw new UnauthorizedException('Token invalide ou expiré');
       }
 
-      // Si de nouveaux tokens ont été générés, mettre à jour les cookies
-      if (newTokens) {
-        const cookieOptions = {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'none' as const,
-          maxAge: 4 * 60 * 60 * 1000, // 4 heures
-          path: '/',
-          domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
-        };
-
-        response.cookie('access_token', newTokens.access_token, cookieOptions);
-        response.cookie('sb-access-token', newTokens.access_token, cookieOptions);
-        response.cookie('refresh_token', newTokens.refresh_token, cookieOptions);
-        response.cookie('sb-refresh-token', newTokens.refresh_token, cookieOptions);
-      }
-
       // Récupérer les informations complètes depuis public.users
-      const userProfile = await this.supabaseService.getUserProfile(user.id);
+      const userProfile = await this.supabaseService.getUserProfile(authUser.id);
       
       // Ajouter l'utilisateur à la requête avec toutes les informations
       request.user = {
-        id: user.id,
-        email: user.email || '',
+        id: authUser.id,
+        email: authUser.email || '',
         role: userProfile?.role || 'user',
         created_at: userProfile?.created_at ? new Date(userProfile.created_at) : undefined,
         updated_at: userProfile?.updated_at ? new Date(userProfile.updated_at) : undefined,
@@ -74,23 +52,21 @@ export class SupabaseAuthGuard implements CanActivate {
     }
   }
 
-  private extractTokensFromRequest(request: AuthenticatedRequest): { accessToken?: string; refreshToken?: string } {
+  private extractTokenFromRequest(request: AuthenticatedRequest): string | undefined {
     // Essayer d'abord les cookies (utiliser any pour contourner le problème TypeScript avec cookie-parser)
     const cookies = (request as any).cookies;
     if (cookies && typeof cookies === 'object') {
-      const accessToken = cookies.access_token || cookies['sb-access-token'];
-      const refreshToken = cookies.refresh_token || cookies['sb-refresh-token'];
-      
-      if (accessToken && typeof accessToken === 'string') {
-        return { accessToken, refreshToken };
+      const tokenFromCookie = cookies.access_token || cookies['sb-access-token'];
+      if (tokenFromCookie && typeof tokenFromCookie === 'string') {
+        return tokenFromCookie;
       }
     }
 
     // Fallback sur les headers Authorization
     const authHeader = request.headers?.authorization;
-    if (!authHeader) return {};
+    if (!authHeader) return undefined;
     
     const [type, token] = authHeader.split(' ');
-    return type === 'Bearer' ? { accessToken: token } : {};
+    return type === 'Bearer' ? token : undefined;
   }
 } 

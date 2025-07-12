@@ -94,12 +94,6 @@ export class AuthController {
         res.cookie('access_token', session.access_token, cookieOptions);
         res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
         
-        // Stocker aussi le refresh token pour le rafraîchissement automatique
-        if (session.refresh_token) {
-          res.cookie('refresh_token', session.refresh_token, cookieOptions);
-          res.cookie('sb-refresh-token', session.refresh_token, cookieOptions);
-        }
-        
         this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
         this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
       }
@@ -203,12 +197,6 @@ export class AuthController {
         res.cookie('access_token', session.access_token, cookieOptions);
         res.cookie('sb-access-token', session.access_token, cookieOptions); // Cookie alternatif
         
-        // Stocker aussi le refresh token pour le rafraîchissement automatique
-        if (session.refresh_token) {
-          res.cookie('refresh_token', session.refresh_token, cookieOptions);
-          res.cookie('sb-refresh-token', session.refresh_token, cookieOptions);
-        }
-        
         this.logger.log(`🍪 Cookies définis pour ${user?.email} avec durée de 4 heures`);
         this.logger.log(`⏰ Durée du token: ${customExpiresIn} secondes (4 heures)`);
         this.logger.log(`🍪 Cookie options:`, {
@@ -274,14 +262,10 @@ export class AuthController {
       // Supprimer les cookies
       res.clearCookie('access_token');
       res.clearCookie('sb-access-token');
-      res.clearCookie('refresh_token');
-      res.clearCookie('sb-refresh-token');
     } catch (error) {
       // Même en cas d'erreur, on supprime les cookies
       res.clearCookie('access_token');
       res.clearCookie('sb-access-token');
-      res.clearCookie('refresh_token');
-      res.clearCookie('sb-refresh-token');
     }
   }
 
@@ -902,81 +886,6 @@ export class AuthController {
         throw error;
       }
       throw new BadRequestException('Erreur lors du changement de mot de passe');
-    }
-  }
-
-  @Post('refresh')
-  @ApiOperation({
-    summary: 'Rafraîchir les tokens d\'authentification',
-    description: 'Rafraîchit automatiquement les tokens d\'accès et de rafraîchissement'
-  })
-  @SwaggerApiResponse({
-    status: 200,
-    description: 'Tokens rafraîchis avec succès'
-  })
-  @SwaggerApiResponse({
-    status: 401,
-    description: 'Refresh token invalide ou expiré'
-  })
-  async refreshTokens(
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response
-  ): Promise<ApiResponse<any>> {
-    try {
-      // Récupérer le refresh token depuis les cookies
-      const refreshToken = req.cookies['refresh_token'] || req.cookies['sb-refresh-token'];
-      
-      if (!refreshToken) {
-        throw new UnauthorizedException('Refresh token manquant');
-      }
-
-      this.logger.log('🔄 Tentative de rafraîchissement manuel des tokens...');
-      
-      // Rafraîchir les tokens
-      const newTokens = await this.supabaseService.refreshToken(refreshToken);
-      
-      if (!newTokens) {
-        throw new UnauthorizedException('Refresh token invalide ou expiré');
-      }
-
-      // Vérifier le nouveau token
-      const user = await this.supabaseService.verifyToken(newTokens.access_token);
-      
-      if (!user) {
-        throw new UnauthorizedException('Nouveau token invalide');
-      }
-
-      // Mettre à jour les cookies
-      const cookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'none' as const,
-        maxAge: 4 * 60 * 60 * 1000, // 4 heures
-        path: '/',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined,
-      };
-
-      res.cookie('access_token', newTokens.access_token, cookieOptions);
-      res.cookie('sb-access-token', newTokens.access_token, cookieOptions);
-      res.cookie('refresh_token', newTokens.refresh_token, cookieOptions);
-      res.cookie('sb-refresh-token', newTokens.refresh_token, cookieOptions);
-
-      this.logger.log(`✅ Tokens rafraîchis avec succès pour: ${user.email}`);
-
-      return {
-        success: true,
-        message: 'Tokens rafraîchis avec succès',
-        data: { 
-          user: {
-            id: user.id,
-            email: user.email
-          },
-          expiresIn: 4 * 60 * 60 // 4 heures en secondes
-        }
-      };
-    } catch (error) {
-      this.logger.error('❌ Erreur lors du rafraîchissement des tokens:', error);
-      throw new UnauthorizedException('Erreur lors du rafraîchissement des tokens');
     }
   }
 } 
