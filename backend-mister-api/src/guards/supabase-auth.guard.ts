@@ -22,8 +22,12 @@ export class SupabaseAuthGuard implements CanActivate {
         throw new UnauthorizedException('Token invalide ou expiré');
       }
 
+      console.log(`🔍 [GUARD] Auth user from token: ${authUser.email} (ID: ${authUser.id})`);
+
       // Récupérer les informations complètes depuis public.users
       const userProfile = await this.supabaseService.getUserProfile(authUser.id);
+      
+      console.log(`🔍 [GUARD] Profile from public.users: ${userProfile?.email} (ID: ${userProfile?.id})`);
       
       // Ajouter l'utilisateur à la requête avec toutes les informations
       request.user = {
